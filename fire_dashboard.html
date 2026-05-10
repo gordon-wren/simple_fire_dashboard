@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIRE Dashboard — Retirement Planning Calculator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --green:#008244;--green-light:#e6f4ed;--green-dark:#00613a;
+  --blue:#1a6daa;--blue-light:#e8f1f8;
+  --red:#c4262e;--red-light:#fdeaea;
+  --gold:#c79400;--gold-light:#fdf5e0;
+  --purple:#6b4c9a;--purple-light:#f0ecf5;
+  --gray-900:#1a1a1a;--gray-700:#333;--gray-600:#4a4a4a;--gray-500:#6b6b6b;
+  --gray-400:#999;--gray-300:#ccc;--gray-200:#e5e5e5;--gray-100:#f5f5f5;--gray-50:#fafafa;--white:#fff;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;
+  --radius:4px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:15px}
+body{font-family:var(--font);background:var(--gray-100);color:var(--gray-700);line-height:1.5;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--gray-100)}::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:3px}
+
+.header{background:var(--white);border-bottom:1px solid var(--gray-200);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+.header-brand{display:flex;align-items:center;gap:.75rem}
+.header-brand .mark{width:28px;height:28px;background:var(--green);border-radius:3px;display:flex;align-items:center;justify-content:center}
+.header-brand .mark svg{width:16px;height:16px}
+.header-brand h1{font-size:1.15rem;font-weight:600;color:var(--gray-900);letter-spacing:-.01em}
+.header-brand .subtitle{font-size:.75rem;color:var(--gray-500);font-weight:400;margin-left:.75rem;padding-left:.75rem;border-left:1px solid var(--gray-300)}
+.header-actions{display:flex;gap:.5rem}
+.btn{font-family:var(--font);font-size:.8rem;font-weight:500;padding:.45rem 1rem;border-radius:var(--radius);border:1px solid var(--gray-300);background:var(--white);color:var(--gray-700);cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--gray-50);border-color:var(--gray-400)}
+.btn-p{background:var(--green);border-color:var(--green);color:var(--white)}
+.btn-p:hover{background:var(--green-dark)}
+
+.app{display:flex;min-height:calc(100vh - 60px)}
+.sidebar{width:340px;min-width:340px;background:var(--white);border-right:1px solid var(--gray-200);padding:1.5rem;overflow-y:auto;height:calc(100vh - 60px)}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;height:calc(100vh - 60px);max-width:1140px}
+
+.ig{margin-bottom:1.25rem}
+.ig-t{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:2px solid var(--green);display:inline-block}
+.fld{margin-bottom:.6rem}
+.fld label{display:block;font-size:.78rem;font-weight:500;color:var(--gray-600);margin-bottom:.2rem}
+.fld input{width:100%;padding:.45rem .6rem;background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);color:var(--gray-900);font-family:var(--font);font-size:.85rem;transition:border-color .15s}
+.fld input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(0,130,68,.12)}
+.fld select{width:100%;padding:.45rem .6rem;background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);color:var(--gray-900);font-family:var(--font);font-size:.85rem;transition:border-color .15s;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center}
+.fld select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(0,130,68,.12)}
+
+.earliest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem;margin-top:.75rem}
+.er-cell{padding:.65rem .75rem;border:1px solid var(--gray-200);border-radius:var(--radius);background:var(--white)}
+.er-cell.current{border-color:var(--green);background:var(--green-light)}
+.er-cell .er-spend{font-size:.68rem;color:var(--gray-500);font-weight:500;margin-bottom:.2rem}
+.er-cell .er-age{font-size:1.1rem;font-weight:700;color:var(--gray-900)}
+.er-cell .er-year{font-size:.65rem;color:var(--gray-400);margin-top:.1rem}
+.er-cell.current .er-age{color:var(--green)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem}
+.fld .hn{font-size:.65rem;color:var(--gray-400);margin-top:.1rem}
+.sep{height:1px;background:var(--gray-200);margin:1rem 0}
+.sidebar .btn{width:100%;margin-top:.4rem}
+.contrib-sum{font-size:.72rem;color:var(--gray-500);margin-top:.3rem;padding:.35rem .5rem;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200)}
+.contrib-sum strong{color:var(--gray-700)}
+.tip{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--gray-200);color:var(--gray-500);font-size:.6rem;font-weight:700;cursor:help;margin-left:.25rem;position:relative;vertical-align:middle;font-style:normal}
+.tip:hover{background:var(--green-light);color:var(--green)}
+.expand-icon{font-size:.75rem;color:var(--gray-400);margin-left:.35rem;font-weight:400}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:.75rem;margin-bottom:1.25rem}
+.kpi{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:.9rem 1rem;box-shadow:var(--shadow)}
+.kpi-l{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-500);margin-bottom:.3rem;font-weight:500}
+.kpi-v{font-size:1.3rem;font-weight:600;color:var(--gray-900)}
+.kpi-v.gr{color:var(--green)}.kpi-s{font-size:.68rem;color:var(--gray-400);margin-top:.15rem}
+
+.tabs{display:flex;gap:0;margin-bottom:1.25rem;border-bottom:2px solid var(--gray-200);overflow-x:auto}
+.tab{padding:.65rem .85rem;font-size:.76rem;font-weight:500;color:var(--gray-500);cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tab:hover{color:var(--gray-700)}.tab.on{color:var(--green);border-bottom-color:var(--green);font-weight:600}
+
+.pnl{display:none}.pnl.on{display:block}
+.card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.card-t{font-size:1rem;font-weight:600;color:var(--gray-900);margin-bottom:.15rem}
+.card-s{font-size:.75rem;color:var(--gray-500);margin-bottom:1rem}
+canvas{width:100%!important;max-height:400px}
+
+.miles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;margin-bottom:1rem}
+.mile{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:1rem 1.15rem;box-shadow:var(--shadow)}
+.mile.ok{border:2px solid var(--green);background:var(--green-light)}.mile.warn{border:2px solid var(--gold);background:var(--gold-light)}.mile.danger{border:2px solid var(--red);background:var(--red-light)}
+.mile .badge{display:inline-block;font-size:.62rem;font-weight:600;padding:.15rem .45rem;border-radius:3px;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em}
+.badge-g{background:var(--green-light);color:var(--green)}.badge-b{background:var(--blue-light);color:var(--blue)}.badge-o{background:var(--gold-light);color:var(--gold)}
+.mile h4{font-size:.82rem;color:var(--gray-600);font-weight:400;margin-bottom:.3rem}
+.mile .tgt{font-size:1.5rem;font-weight:600;margin-bottom:.15rem}.tgt.gr{color:var(--green)}.tgt.dk{color:var(--gray-900)}
+.mile .det{font-size:.73rem;color:var(--gray-500);line-height:1.5}
+
+.dr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:1rem}
+.di .dl{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-500);font-weight:500;margin-bottom:.3rem}
+.di .dv{font-size:1.6rem;font-weight:600;color:var(--green)}
+.di .ds{font-size:.7rem;color:var(--gray-400);margin-top:.15rem;line-height:1.4}
+
+.tw{max-height:420px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:var(--radius)}
+.dt{width:100%;border-collapse:collapse;font-size:.78rem}
+.dt thead{position:sticky;top:0;z-index:2}
+.dt th{background:var(--gray-50);padding:.55rem .65rem;text-align:right;font-weight:600;color:var(--gray-600);font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--gray-200)}
+.dt th:first-child{text-align:left}
+.dt td{padding:.45rem .65rem;text-align:right;font-family:var(--mono);font-size:.73rem;border-bottom:1px solid var(--gray-100);color:var(--gray-700)}
+.dt td:first-child{text-align:left;font-family:var(--font);color:var(--gray-500)}
+.dt tr:hover td{background:var(--green-light)}.dt tr.fire-row td{background:#e6f4ed;font-weight:600}
+
+.sr{display:flex;align-items:center;gap:1.5rem;margin-bottom:1rem}
+.sr-ring{width:120px;height:120px;position:relative;flex-shrink:0}
+.sr-ring svg{transform:rotate(-90deg)}
+.sr-ring .sv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sr-ring .sn{font-size:1.6rem;font-weight:700}.sr-ring .sl{font-size:.62rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em}
+.sr-info h3{font-size:1rem;font-weight:600;color:var(--gray-900);margin-bottom:.25rem}
+.sr-info p{font-size:.8rem;color:var(--gray-500);line-height:1.55}
+
+.tg{display:inline-flex;gap:0;margin-bottom:1rem;border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden}
+.tgb{font-family:var(--font);font-size:.75rem;font-weight:500;padding:.4rem 1rem;background:var(--white);color:var(--gray-500);border:none;cursor:pointer;transition:all .15s;border-right:1px solid var(--gray-300)}
+.tgb:last-child{border-right:none}.tgb:hover{background:var(--gray-50)}.tgb.on{background:var(--green);color:var(--white)}
+
+.lgnd{display:flex;gap:1.25rem;flex-wrap:wrap;margin-top:.75rem;font-size:.7rem;color:var(--gray-500)}
+.lgnd span{display:flex;align-items:center;gap:.3rem}
+.lgnd .dot{width:10px;height:3px;border-radius:1px;display:inline-block}
+
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:.4rem;margin-top:.75rem}
+.sc{text-align:center;padding:.55rem .3rem;border-radius:var(--radius);border:1px solid var(--gray-200);background:var(--white);font-size:.78rem}
+.sc .sp{font-size:.62rem;color:var(--gray-500);margin-bottom:.15rem;font-weight:500}
+.sc.hl{border-color:var(--green);background:var(--green-light)}
+
+/* Tax bucket cards */
+.bucket-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1rem}
+.bucket{border:1px solid var(--gray-200);border-radius:var(--radius);padding:1.15rem;box-shadow:var(--shadow);background:var(--white)}
+.bucket .b-bar{width:100%;height:4px;border-radius:2px;margin-bottom:.75rem}
+.bucket .b-icon{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;display:inline-block;padding:.15rem .45rem;border-radius:3px}
+.bucket .b-label{font-size:.82rem;font-weight:600;color:var(--gray-900);margin-bottom:.2rem}
+.bucket .b-val{font-size:1.4rem;font-weight:700;margin-bottom:.1rem}
+.bucket .b-sub{font-size:.68rem;color:var(--gray-400);line-height:1.5}
+.bucket .b-accts{margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--gray-200);font-size:.7rem;color:var(--gray-500);line-height:1.6}
+.bucket-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem}
+.bucket-summary .bs-item{padding:.75rem 1rem;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius)}
+.bucket-summary .bs-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-500);font-weight:500;margin-bottom:.2rem}
+.bucket-summary .bs-val{font-size:1.2rem;font-weight:600;color:var(--gray-900)}
+.bucket-summary .bs-sub{font-size:.65rem;color:var(--gray-400);margin-top:.1rem}
+
+.asm{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);padding:.9rem 1.15rem;font-size:.72rem;color:var(--gray-500);line-height:1.7;margin-top:.5rem}
+.asm strong{color:var(--gray-600)}
+.disc{margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--gray-200);font-size:.65rem;color:var(--gray-400);line-height:1.6}
+
+@media(max-width:1024px){.app{flex-direction:column}.sidebar{width:100%;min-width:auto;height:auto;border-right:none;border-bottom:1px solid var(--gray-200)}.main{height:auto}.bucket-row{grid-template-columns:1fr}}
+@media print{.sidebar{display:none}.header-actions{display:none}.tabs{display:none}.pnl{display:block!important;page-break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-brand">
+    <div class="mark"><svg viewBox="0 0 16 16" fill="none"><polygon points="8,2 14,14 2,14" fill="white"/></svg></div>
+    <h1>FIRE Dashboard</h1>
+    <span class="subtitle">Retirement Planning Calculator</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn" onclick="exportURL()">Share Link</button>
+    <button class="btn btn-p" onclick="window.print()">Print / Export</button>
+  </div>
+</header>
+<div class="app">
+<aside class="sidebar">
+  <div class="ig"><div class="ig-t">Personal</div>
+    <div class="fr"><div class="fld"><label>Current age</label><input type="number" id="age" value="35" min="18" max="80"></div><div class="fld"><label>Retirement age</label><select id="retireAge"><option value="asap">As soon as possible</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option><option value="65" selected>65</option><option value="67">67</option><option value="70">70</option><option value="75">75</option><option value="80">80</option></select></div></div>
+  </div>
+  <div class="ig"><div class="ig-t">Income &amp; Spending</div>
+    <div class="fld"><label>Annual gross income</label><input type="text" id="income" data-money value="170,000"><div class="hn">Pre-tax household income</div></div>
+    <div class="fld"><label>Annual spending</label><input type="text" id="spending" data-money value="110,000"></div>
+  </div>
+  <div class="ig"><div class="ig-t">Current Portfolio</div>
+    <div class="tg" style="margin-bottom:.6rem"><button class="tgb on" data-pmode="simple" onclick="setPortfolioMode('simple')">Total</button><button class="tgb" data-pmode="detail" onclick="setPortfolioMode('detail')">By Tax Bucket</button></div>
+    <div id="portfolioSimple">
+      <div class="fld"><label>Total portfolio value</label><input type="text" id="portfolio" data-money value="770,000"><div class="hn">Sum of all investment accounts</div></div>
+    </div>
+    <div id="portfolioDetail" style="display:none">
+    <div class="fr3">
+      <div class="fld"><label>Tax-deferred <span class="tip" title="401(k), 403(b), TSP, traditional IRA. Contributions were tax-deductible; withdrawals taxed as ordinary income.">?</span></label><input type="text" id="balDeferred" data-money value="0"><div class="hn">401k, 403b, tIRA</div></div>
+      <div class="fld"><label>Tax-free <span class="tip" title="Roth IRA, Roth 401(k), HSA. After-tax contributions; qualified withdrawals are tax-free.">?</span></label><input type="text" id="balTaxFree" data-money value="0"><div class="hn">Roth, HSA</div></div>
+      <div class="fld"><label>After-tax <span class="tip" title="Taxable brokerage accounts. Only gains are taxed, typically at capital gains rates.">?</span></label><input type="text" id="balAfterTax" data-money value="0"><div class="hn">Brokerage accounts</div></div>
+    </div>
+    <div class="contrib-sum" id="portfolioSum"></div>
+    </div>
+  </div>
+  <div class="ig"><div class="ig-t">Annual Contributions</div>
+    <div class="tg" style="margin-bottom:.6rem"><button class="tgb on" data-cmode="simple" onclick="setContribMode('simple')">Total</button><button class="tgb" data-cmode="detail" onclick="setContribMode('detail')">By Tax Bucket</button></div>
+    <div id="contribSimple">
+      <div class="fld"><label>Total annual contributions</label><input type="text" id="contribTotal" data-money value="42,500"><div class="hn">Defaults to 25% of gross income</div></div>
+    </div>
+    <div id="contribDetail" style="display:none">
+    <div class="fr3">
+      <div class="fld"><label>Pre-tax <span class="tip" title="2026 limits: $24,500 under 50 · $32,500 age 50+ · $35,750 ages 60–63. Includes 401(k), 403(b), TSP, traditional IRA ($7,500).">?</span></label><input type="text" id="contribPreTax" data-money value="0"><div class="hn">401k, 403b, TSP</div></div>
+      <div class="fld"><label>Tax-free <span class="tip" title="2026 limits: Roth IRA: $7,500 under 50, $8,600 age 50+. HSA: $4,400 individual, $8,750 family (+$1,000 if 55+). Income limits apply for Roth.">?</span></label><input type="text" id="contribTaxFree" data-money value="0"><div class="hn">Roth IRA, HSA</div></div>
+      <div class="fld"><label>After-tax <span class="tip" title="No IRS contribution limit on taxable brokerage accounts. Only gains are taxed, typically at long-term capital gains rates if held 1+ year.">?</span></label><input type="text" id="contribAfterTax" data-money value="0"><div class="hn">Brokerage accounts</div></div>
+    </div>
+    <div class="contrib-sum" id="contribSum"></div>
+    </div>
+  </div>
+  <div class="sep"></div>
+  <div class="ig"><div class="ig-t">Assumptions</div>
+    <div class="fr"><div class="fld"><label>Nominal return (%)</label><input type="number" id="returnRate" value="7" step="0.1" min="0" max="20"></div><div class="fld"><label>Inflation (%)</label><input type="number" id="inflation" value="2" step="0.1" min="0" max="10"></div></div>
+    <div class="fr"><div class="fld"><label>Withdrawal rate (%)</label><input type="number" id="swr" value="4" step="0.1" min="1" max="10"><div class="hn">4% rule is standard</div></div><div class="fld"><label>Spending growth (%)</label><input type="number" id="spendGrowth" value="2" step="0.1" min="0" max="8"></div></div>
+    <div class="fld"><label>Effective tax rate in retirement (%)</label><input type="number" id="retireTax" value="20" step="1" min="0" max="50"><div class="hn">Applied to tax-deferred withdrawals</div></div>
+  </div>
+  <div class="sep"></div>
+  <div class="ig"><div class="ig-t">Simulation</div>
+    <div class="fr"><div class="fld"><label>Simulations</label><input type="number" id="mcRuns" value="500" step="100" min="100" max="5000"></div><div class="fld"><label>Volatility (%)</label><input type="number" id="mcVol" value="12" step="0.5" min="1" max="30"></div></div>
+    <div class="fld"><label>Retirement duration (yrs)</label><input type="number" id="retireDur" value="30" min="5" max="60"><div class="hn">How long savings must last</div></div>
+  </div>
+  <div class="sep"></div>
+  <button class="btn btn-p" onclick="recalc()">Update Dashboard</button>
+  <button class="btn" onclick="saveLocally()" id="saveBtn">Save Locally</button>
+  <div id="saveStatus" style="font-size:.68rem;color:var(--gray-400);margin-top:.35rem;text-align:center;display:none"></div>
+  <button class="btn" onclick="resetDefaults()" style="margin-top:.25rem">Reset to Defaults</button>
+</aside>
+<div class="main">
+  <div class="kpis" id="kpis"></div>
+  <div class="tabs">
+    <div class="tab on" data-t="overview">Overview</div>
+    <div class="tab" data-t="growth">Growth Projection</div>
+    <div class="tab" data-t="taxbuckets">Tax Buckets</div>
+    <div class="tab" data-t="montecarlo">Simulation</div>
+    <div class="tab" data-t="withdrawal">Withdrawal Strategy</div>
+    <div class="tab" data-t="sensitivity">Savings Rate</div>
+    <div class="tab" data-t="table">Year-by-Year</div>
+  </div>
+
+  <div class="pnl on" id="p-overview">
+    <div class="card" id="earliestRetireCard" style="display:none">
+      <div class="card-t">Earliest Possible Retirement</div>
+      <div class="card-s">When you could retire based on your current trajectory and different spending levels</div>
+      <div class="dr" id="earliestRetireDetails"></div>
+      <div class="card-t" style="font-size:.88rem;margin-top:1rem">What if you adjusted your spending?</div>
+      <div class="card-s">How changing annual spending moves your retirement date forward or back</div>
+      <div class="earliest-grid" id="earliestGrid"></div>
+    </div>
+    <div class="card"><div class="card-t">FIRE Milestones</div><div class="card-s">When you reach each level of financial independence</div><div class="miles" id="milestones"></div></div>
+    <div class="card"><div class="card-t">Full FIRE Details</div><div class="card-s">Your path to complete financial independence</div><div class="dr" id="fireDetails"></div></div>
+    <div class="asm" id="asmText"></div>
+    <div class="disc">Important: These projections are hypothetical and do not reflect actual investment results. They are not guarantees of future results. Your results may vary. All values are shown in today's dollars unless otherwise noted. Consult a qualified financial advisor and tax professional before making investment decisions.</div>
+  </div>
+
+  <div class="pnl" id="p-growth"><div class="card"><div class="card-t">Portfolio Growth Projection</div><div class="card-s">Projected portfolio value vs. inflation-adjusted FIRE number over time</div><canvas id="growthChart"></canvas><div class="lgnd"><span><i class="dot" style="background:#008244"></i> Investment growth</span><span><i class="dot" style="background:#1a6daa"></i> Principal (contributions + starting balance)</span><span><i class="dot" style="background:var(--gray-400)"></i> FIRE number</span><span><i class="dot" style="background:var(--gold)"></i> Barista FIRE</span></div><div id="growthSummary" style="margin-top:.75rem;font-size:.75rem;color:var(--gray-500)"></div></div></div>
+
+  <div class="pnl" id="p-taxbuckets">
+    <div id="bucketNoData" class="card" style="display:none">
+      <div class="card-t">Tax Bucket Breakdown Not Available</div>
+      <div class="card-s">To see projected tax bucket allocations, switch your Portfolio and Contributions inputs to "By Tax Bucket" mode in the sidebar. This will let the dashboard project each account type separately.</div>
+    </div>
+    <div id="bucketContent">
+    <div class="card">
+      <div class="card-t" id="bucketTitle">Projected Tax Allocation at Retirement</div>
+      <div class="card-s" id="bucketSubtitle">Estimated balance in each tax bucket at your target retirement age</div>
+      <div class="bucket-row" id="bucketCards"></div>
+    </div>
+    <div class="card"><div class="card-t">Growth by Tax Bucket Over Time</div><div class="card-s">How each bucket grows from today through retirement</div>
+      <canvas id="bucketChart"></canvas>
+      <div class="lgnd"><span><i class="dot" style="background:var(--green)"></i> Tax-free (Roth, HSA)</span><span><i class="dot" style="background:var(--blue)"></i> Tax-deferred (401k, 403b)</span><span><i class="dot" style="background:var(--purple)"></i> After-tax (Brokerage)</span></div>
+    </div>
+    <div class="card"><div class="card-t">Retirement Withdrawal Tax Impact</div><div class="card-s">Estimated annual tax burden based on withdrawal source at your effective rate</div>
+      <div class="bucket-summary" id="taxImpact"></div>
+    </div>
+    </div>
+    <div class="asm">
+      <strong>Tax bucket notes:</strong> Tax-free accounts (Roth IRA, HSA) provide tax-free growth and tax-free withdrawals in retirement. Tax-deferred accounts (401k, 403b, traditional IRA, TSP) offer tax deductions now but withdrawals are taxed as ordinary income. After-tax accounts (brokerage, taxable accounts) are funded with after-tax dollars; only gains are taxed (typically at capital gains rates). This model applies your specified effective rate to tax-deferred withdrawals and 50% of that rate to after-tax account gains as an approximation. Actual tax impact depends on your specific situation. Consult a tax professional.
+    </div>
+  </div>
+
+  <div class="pnl" id="p-montecarlo">
+    <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+      <div class="tg"><button class="tgb on" data-mode="mc" onclick="setMCMode('mc')">Monte Carlo</button><button class="tgb" data-mode="hist" onclick="setMCMode('hist')">Historical Backtest</button></div>
+      <div class="fld" style="margin-bottom:0;min-width:220px"><label style="margin-bottom:.15rem">Starting portfolio for simulation</label><select id="mcStartSelect" onchange="renderMC()"></select></div>
+    </div>
+    <div class="sr" id="mcRing"></div>
+    <div class="card"><div class="card-t" id="mcTitle">Monte Carlo Simulation</div><div class="card-s" id="mcSub">Post-retirement portfolio trajectories</div><canvas id="mcChart"></canvas><div class="lgnd" id="mcLgnd"></div></div>
+  </div>
+
+  <div class="pnl" id="p-withdrawal">
+    <div class="card"><div class="card-t">Post-Retirement Drawdown Analysis</div><div class="card-s">How your portfolio depletes under different withdrawal rates</div><canvas id="wdChart"></canvas><div class="lgnd" id="wdLgnd"></div></div>
+    <div class="card"><div class="card-t">Withdrawal Rate vs. Success Rate</div><div class="card-s">Monte Carlo success probability at each withdrawal rate (1,000 simulations each)</div><canvas id="wrChart"></canvas></div>
+  </div>
+
+  <div class="pnl" id="p-sensitivity">
+    <div class="card"><div class="card-t">Savings Rate vs. Years to FIRE</div><div class="card-s">How increasing your savings rate accelerates your path to financial independence</div><canvas id="srChart"></canvas></div>
+    <div class="card"><div class="card-t">Quick Reference</div><div class="card-s">Years to FIRE at each savings rate given your current return assumptions</div><div class="sg" id="srGrid"></div></div>
+  </div>
+
+  <div class="pnl" id="p-table"><div class="card"><div class="card-t">Year-by-Year Projection</div><div class="card-s">Accumulation phase detail with inflation-adjusted values</div><div class="tw"><table class="dt" id="dataTable"></table></div></div></div>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+function V(id){const el=$(id);if(!el)return 0;if(el.hasAttribute('data-money'))return parseFloat(el.value.replace(/[^0-9.\-]/g,''))||0;return parseFloat(el.value)||0}
+const fmt=n=>{if(Math.abs(n)>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(Math.abs(n)>=1e3)return'$'+Math.round(n/1e3).toLocaleString()+'k';return'$'+Math.round(n).toLocaleString()};
+const fmtF=n=>'$'+Math.round(n).toLocaleString(),pct=n=>n.toFixed(1)+'%';
+let charts={},mcMode='mc';const CY=new Date().getFullYear();
+
+// Money input formatting
+function fmtMoney(el){const raw=el.value.replace(/[^0-9.\-]/g,'');if(!raw){el.value='';return}const num=parseFloat(raw);if(isNaN(num)){el.value='';return}el.value=Math.round(num).toLocaleString()}
+document.querySelectorAll('[data-money]').forEach(el=>{
+  el.addEventListener('blur',()=>{fmtMoney(el);updateContribSum();updatePortfolioSum()});
+  el.addEventListener('focus',()=>{
+    const raw=el.value.replace(/[^0-9.\-]/g,'');el.value=raw;
+    setTimeout(()=>el.select(),0);
+  });
+});
+
+let contribMode='simple';
+let portfolioMode='simple';
+
+function setPortfolioMode(mode){
+  portfolioMode=mode;
+  document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode===mode));
+  $('portfolioSimple').style.display=mode==='simple'?'block':'none';
+  $('portfolioDetail').style.display=mode==='detail'?'block':'none';
+  if(mode==='detail'){
+    const d=V('balDeferred'),tf=V('balTaxFree'),at=V('balAfterTax');
+    if(d===0&&tf===0&&at===0){
+      // Split total evenly across buckets as a starting point: 45% deferred, 20% tax-free, 35% after-tax
+      const total=V('portfolio');
+      $('balDeferred').value=Math.round(total*0.45).toLocaleString();fmtMoney($('balDeferred'));
+      $('balTaxFree').value=Math.round(total*0.20).toLocaleString();fmtMoney($('balTaxFree'));
+      $('balAfterTax').value=Math.round(total*0.35).toLocaleString();fmtMoney($('balAfterTax'));
+    }
+    updatePortfolioSum();
+  }
+  recalc();
+}
+function updatePortfolioSum(){
+  if(portfolioMode!=='detail')return;
+  const d=V('balDeferred'),tf=V('balTaxFree'),at=V('balAfterTax'),total=d+tf+at;
+  if($('portfolioSum'))$('portfolioSum').innerHTML=`<strong>Total portfolio:</strong> ${fmtF(total)} (Tax-deferred: ${fmtF(d)} + Tax-free: ${fmtF(tf)} + After-tax: ${fmtF(at)})`;
+}
+
+function setContribMode(mode){
+  contribMode=mode;
+  document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode===mode));
+  $('contribSimple').style.display=mode==='simple'?'block':'none';
+  $('contribDetail').style.display=mode==='detail'?'block':'none';
+  if(mode==='detail'){
+    const pre=V('contribPreTax'),tf=V('contribTaxFree'),at=V('contribAfterTax');
+    if(pre===0&&tf===0&&at===0){
+      $('contribPreTax').value='24,500';fmtMoney($('contribPreTax'));
+      $('contribTaxFree').value='11,900';fmtMoney($('contribTaxFree'));
+      const totalSimple=V('contribTotal');
+      const remainder=Math.max(0,totalSimple-24500-11900);
+      $('contribAfterTax').value=Math.round(remainder).toLocaleString();fmtMoney($('contribAfterTax'));
+    }
+    updateContribSum();
+  }
+  recalc();
+}
+function updateContribSum(){
+  if(contribMode!=='detail')return;
+  const pre=V('contribPreTax'),tf=V('contribTaxFree'),at=V('contribAfterTax'),total=pre+tf+at;
+  if($('contribSum'))$('contribSum').innerHTML=`<strong>Total:</strong> ${fmtF(total)}/yr (Pre-tax: ${fmtF(pre)} + Tax-free: ${fmtF(tf)} + After-tax: ${fmtF(at)})`;
+}
+function toggleSection(id,header){
+  const el=$(id);const icon=header.querySelector('.expand-icon');
+  if(el.style.display==='none'){el.style.display='block';icon.textContent='−'}
+  else{el.style.display='none';icon.textContent='+'}
+}
+
+document.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.pnl').forEach(x=>x.classList.remove('on'));t.classList.add('on');$('p-'+t.dataset.t).classList.add('on')})});
+document.querySelectorAll('.sidebar input, .sidebar select').forEach(el=>{el.addEventListener('change',()=>{updateContribSum();updatePortfolioSum();recalc()})});
+
+function setMCMode(m){mcMode=m;document.querySelectorAll('.tgb').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));renderMC()}
+
+function isASAP(){return $('retireAge').value==='asap'}
+function resolveRetireAge(inp){
+  const f=findFireRaw(inp);
+  return f.age!==null?f.age:inp.age+40;
+}
+function findFireRaw(inp){const rr=inp.nomReturn-inp.inflation;let b=inp.portfolio;for(let y=0;y<=60;y++){const as=inp.spending*Math.pow(1+inp.spendGrowth,y),af=as/inp.swr;if(b>=af)return{year:CY+y,age:inp.age+y,yrs:y,bal:b,fireNum:af};b=b*(1+rr)+inp.contributions}return{year:null,age:null,yrs:Infinity,bal:b,fireNum:inp.spending*Math.pow(1+inp.spendGrowth,60)/inp.swr}}
+function findFireAtSpend(inp,annualSpend){const rr=inp.nomReturn-inp.inflation;let b=inp.portfolio;for(let y=0;y<=60;y++){const as=annualSpend*Math.pow(1+inp.spendGrowth,y),af=as/inp.swr;if(b>=af)return{year:CY+y,age:inp.age+y,yrs:y,bal:b,fireNum:af};b=b*(1+rr)+inp.contributions}return{year:null,age:null,yrs:Infinity}}
+
+function getInputs(){
+  let totalContrib,cPre,cTF,cAT;
+  if(contribMode==='simple'){
+    totalContrib=V('contribTotal');
+    cPre=0;cTF=0;cAT=0;
+  } else {
+    cPre=V('contribPreTax');cTF=V('contribTaxFree');cAT=V('contribAfterTax');
+    totalContrib=cPre+cTF+cAT;
+  }
+  let portfolioTotal,bDef,bTF,bAT;
+  if(portfolioMode==='simple'){
+    portfolioTotal=V('portfolio');
+    bDef=0;bTF=0;bAT=0;
+  } else {
+    bDef=V('balDeferred');bTF=V('balTaxFree');bAT=V('balAfterTax');
+    portfolioTotal=bDef+bTF+bAT;
+  }
+  const base={age:V('age'),portfolio:portfolioTotal,income:V('income'),spending:V('spending'),
+    contributions:totalContrib,contribPreTax:cPre,contribTaxFree:cTF,contribAfterTax:cAT,
+    balDeferred:bDef,balTaxFree:bTF,balAfterTax:bAT,
+    nomReturn:V('returnRate')/100,inflation:V('inflation')/100,swr:V('swr')/100,
+    spendGrowth:V('spendGrowth')/100,retireTax:V('retireTax')/100,
+    mcRuns:V('mcRuns'),mcVol:V('mcVol')/100,retireDur:V('retireDur')};
+  base.retireAge=isASAP()?resolveRetireAge(base):parseInt($('retireAge').value);
+  return base;
+}
+
+function calcProj(inp){const rr=inp.nomReturn-inp.inflation,yrs=inp.retireAge-inp.age,rows=[];let b=inp.portfolio,principal=inp.portfolio;for(let y=0;y<=yrs+5;y++){const as=inp.spending*Math.pow(1+inp.spendGrowth,y),af=as/inp.swr,bf=af*.5;const c=y<yrs?inp.contributions:0;rows.push({year:CY+y,age:inp.age+y,bal:b,principal:principal,growth:Math.max(0,b-principal),fireNum:af,barista:bf,cont:c,spend:as,isFire:b>=af,isBarista:b>=bf});if(y<yrs+5){b=b*(1+rr)+c;principal+=c}}return rows}
+function findFire(inp){const rr=inp.nomReturn-inp.inflation;let b=inp.portfolio;for(let y=0;y<=60;y++){const as=inp.spending*Math.pow(1+inp.spendGrowth,y),af=as/inp.swr;if(b>=af)return{year:CY+y,age:inp.age+y,yrs:y,bal:b,fireNum:af};b=b*(1+rr)+inp.contributions}return{year:null,age:null,yrs:Infinity,bal:b,fireNum:inp.spending*Math.pow(1+inp.spendGrowth,60)/inp.swr}}
+function calcCoast(inp,ta){const rr=inp.nomReturn-inp.inflation,yt=ta-inp.age;if(yt<=0)return{ta,needed:0,ok:true,fn:inp.spending/inp.swr,grows:inp.portfolio};const fs=inp.spending*Math.pow(1+inp.spendGrowth,yt),fn=fs/inp.swr,need=fn/Math.pow(1+rr,yt);return{ta,needed:need,ok:inp.portfolio>=need,fn,grows:inp.portfolio*Math.pow(1+rr,yt)}}
+function calcBarista(inp){const rr=inp.nomReturn-inp.inflation;let b=inp.portfolio;for(let y=0;y<=60;y++){const as=inp.spending*Math.pow(1+inp.spendGrowth,y),bn=(as/inp.swr)*.5;if(b>=bn)return{year:CY+y,age:inp.age+y,yrs:y,bal:b,bn};b=b*(1+rr)+inp.contributions}return{year:null,age:null,yrs:Infinity}}
+
+function runMC(inp,startBal,annualWD){const rr=inp.nomReturn-inp.inflation,paths=[];let ok=0;for(let r=0;r<inp.mcRuns;r++){const p=[startBal];let b=startBal,fail=false;for(let y=1;y<=inp.retireDur;y++){b=b*(1+nRand(rr,inp.mcVol))-annualWD*Math.pow(1+inp.spendGrowth,y);p.push(b);if(b<=0){fail=true;for(let j=y+1;j<=inp.retireDur;j++)p.push(0);break}}paths.push(p);if(!fail)ok++}const pc={};[10,25,50,75,90].forEach(p=>{pc[p]=[]});for(let y=0;y<=inp.retireDur;y++){const v=paths.map(pp=>pp[y]).sort((a,b)=>a-b);[10,25,50,75,90].forEach(p=>{pc[p].push(v[Math.floor(v.length*p/100)])})}return{paths,ok,total:inp.mcRuns,rate:ok/inp.mcRuns,pc,sb:startBal,aw:annualWD}}
+function runHist(inp,startBal,annualWD){const reg=[{m:.12,v:.14,w:.4},{m:.04,v:.1,w:.35},{m:-.08,v:.22,w:.15},{m:.02,v:.08,w:.1}],paths=[];let ok=0;const nc=Math.min(inp.mcRuns,200);for(let c=0;c<nc;c++){const p=[startBal];let b=startBal,fail=false,ri=Math.random()<.5?0:1;for(let y=1;y<=inp.retireDur;y++){if(Math.random()<.15)ri=wRand(reg.map(r=>r.w));const r=reg[ri];b=b*(1+nRand(r.m-inp.inflation,r.v))-annualWD*Math.pow(1+inp.spendGrowth,y);p.push(b);if(b<=0){fail=true;for(let j=y+1;j<=inp.retireDur;j++)p.push(0);break}}paths.push(p);if(!fail)ok++}const pc={};[10,25,50,75,90].forEach(p=>{pc[p]=[]});for(let y=0;y<=inp.retireDur;y++){const v=paths.map(pp=>pp[y]).sort((a,b)=>a-b);[10,25,50,75,90].forEach(p=>{pc[p].push(v[Math.floor(v.length*p/100)])})}return{paths,ok,total:nc,rate:ok/nc,pc,sb:startBal,aw:annualWD}}
+function nRand(m,s){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function wRand(w){const t=w.reduce((a,b)=>a+b,0);let r=Math.random()*t;for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return i}return w.length-1}
+
+function calcWD(inp,wr){const fire=findFire(inp),sb=fire.bal||inp.portfolio,rr=inp.nomReturn-inp.inflation,aw=sb*wr,p=[sb];let b=sb;for(let y=1;y<=inp.retireDur;y++){b=b*(1+rr)-aw*Math.pow(1+inp.spendGrowth,y);p.push(Math.max(b,0));if(b<=0){for(let j=y+1;j<=inp.retireDur;j++)p.push(0);break}}return p}
+function calcWRSuccess(inp){const rs=[],fire=findFire(inp),sb=fire.bal||inp.portfolio,rr=inp.nomReturn-inp.inflation;for(let wr=2;wr<=8;wr+=.5){const aw=sb*(wr/100);let s=0;for(let r=0;r<1000;r++){let b=sb,ok=true;for(let y=1;y<=inp.retireDur;y++){b=b*(1+nRand(rr,inp.mcVol))-aw*Math.pow(1+inp.spendGrowth,y);if(b<=0){ok=false;break}}if(ok)s++}rs.push({rate:wr,success:s/10})}return rs}
+function calcSR(inp){const rr=inp.nomReturn-inp.inflation,inc=inp.income,rs=[];for(let sr=5;sr<=80;sr+=5){const sv=inc*sr/100,sp=inc-sv,fn=sp/inp.swr;let b=inp.portfolio,y=0;while(b<fn&&y<80){b=b*(1+rr)+sv;y++}rs.push({rate:sr,years:y>=80?null:y})}return rs}
+
+// ═══ TAX BUCKET PROJECTIONS ═══
+function calcBuckets(inp){
+  const rr=inp.nomReturn-inp.inflation,yrs=inp.retireAge-inp.age;
+  let bDef=inp.balDeferred,bTF=inp.balTaxFree,bAT=inp.balAfterTax;
+  const rows=[{year:CY,age:inp.age,def:bDef,tf:bTF,at:bAT,total:bDef+bTF+bAT}];
+  for(let y=1;y<=yrs;y++){
+    bDef=bDef*(1+rr)+inp.contribPreTax;
+    bTF=bTF*(1+rr)+inp.contribTaxFree;
+    bAT=bAT*(1+rr)+inp.contribAfterTax;
+    rows.push({year:CY+y,age:inp.age+y,def:bDef,tf:bTF,at:bAT,total:bDef+bTF+bAT});
+  }
+  return rows;
+}
+
+// ═══ RENDER ═══
+function recalc(){const i=getInputs();rKPI(i);rEarliest(i);rOverview(i);rGrowth(i);rBuckets(i);renderMC();rWD(i);rSens(i);rTable(i)}
+
+function rEarliest(i){
+  const card=$('earliestRetireCard');
+  if(!isASAP()){card.style.display='none';return}
+  card.style.display='block';
+  const f=findFire(i);
+  const fireAge=f.age;const fireYear=f.year;const fireYrs=f.yrs;
+
+  // Details row
+  if(fireAge!==null&&fireYrs!==Infinity){
+    $('earliestRetireDetails').innerHTML=`
+    <div class="di"><div class="dl">You could retire at age</div><div class="dv">${fireAge}</div><div class="ds">In ${fireYear}, ${fireYrs} years from now</div></div>
+    <div class="di"><div class="dl">Required portfolio</div><div class="dv">~${fmt(f.fireNum)}</div><div class="ds">${fmt(i.spending)}/yr adjusted for inflation at a ${pct(i.swr*100)} withdrawal rate</div></div>
+    <div class="di"><div class="dl">Projected portfolio at that age</div><div class="dv">~${fmt(f.bal)}</div><div class="ds">Exceeds your FIRE number by ~${fmt(f.bal-f.fireNum)}</div></div>`;
+  } else {
+    $('earliestRetireDetails').innerHTML=`
+    <div class="di"><div class="dl">Earliest retirement</div><div class="dv" style="color:var(--red)">Not projected</div><div class="ds">At current spending and savings, FIRE is not reached within 60 years. Consider reducing spending or increasing contributions.</div></div>`;
+  }
+
+  // Grid: what if spending changed?
+  const steps=[];
+  const base=i.spending;
+  for(let pctAdj=-40;pctAdj<=40;pctAdj+=10){
+    const adjSpend=base*(1+pctAdj/100);
+    const result=findFireAtSpend(i,adjSpend);
+    steps.push({spend:adjSpend,pctAdj,age:result.age,year:result.year,yrs:result.yrs,isCurrent:pctAdj===0});
+  }
+  $('earliestGrid').innerHTML=steps.map(s=>{
+    const ageStr=s.age!==null?'Age '+s.age:'60+ yrs';
+    const yrStr=s.year!==null?s.year:'N/A';
+    const label=s.pctAdj===0?'Current spending':s.pctAdj>0?'+'+s.pctAdj+'% spending':s.pctAdj+'% spending';
+    return`<div class="er-cell ${s.isCurrent?'current':''}">
+      <div class="er-spend">${label}</div>
+      <div class="er-age">${ageStr}</div>
+      <div class="er-year">${fmtF(Math.round(s.spend))}/yr · ${yrStr}</div>
+    </div>`;
+  }).join('');
+}
+
+function rKPI(i){const f=findFire(i),rr=i.nomReturn-i.inflation,sr=i.income>0?i.contributions/i.income*100:0,c=calcCoast(i,i.retireAge);
+$('kpis').innerHTML=`
+<div class="kpi"><div class="kpi-l">FIRE Number</div><div class="kpi-v">${fmt(f.fireNum)}</div><div class="kpi-s">${pct(i.swr*100)} SWR</div></div>
+<div class="kpi"><div class="kpi-l">Years to FIRE</div><div class="kpi-v ${f.yrs<=0?'gr':''}">${f.yrs<=0?'Achieved':f.yrs+' yrs'}</div><div class="kpi-s">${f.year?'Target '+f.year:''}</div></div>
+<div class="kpi"><div class="kpi-l">Savings Rate</div><div class="kpi-v">${pct(sr)}</div><div class="kpi-s">${fmt(i.contributions)} of ${fmt(i.income)}</div></div>
+<div class="kpi"><div class="kpi-l">Portfolio</div><div class="kpi-v">${fmt(i.portfolio)}</div><div class="kpi-s">${(i.portfolio/f.fireNum*100).toFixed(0)}% of target</div></div>
+<div class="kpi"><div class="kpi-l">Real Return</div><div class="kpi-v">${pct(rr*100)}</div><div class="kpi-s">After inflation</div></div>
+<div class="kpi"><div class="kpi-l">Coast FIRE</div><div class="kpi-v ${c.ok?'gr':''}">${c.ok?'Achieved':fmt(c.needed)}</div><div class="kpi-s">Age ${i.retireAge} target</div></div>`}
+
+function rOverview(i){const f=findFire(i),c65=calcCoast(i,65),c55=calcCoast(i,55),bar=calcBarista(i);
+function ml(bg,bc,status,tgt,det){return`<div class="mile ${status}"><span class="badge ${bc}">${bg}</span><div class="tgt ${status==='ok'?'gr':'dk'}">${tgt}</div><div class="det">${det}</div></div>`}
+function mileStatus(ok,portfolio,needed){if(ok)return'ok';if(!needed||needed===Infinity)return'danger';const pct=portfolio/needed;return pct>=0.75?'warn':'danger'}
+
+// When will portfolio reach a target value?
+function findReachDate(inp,target){const rr=inp.nomReturn-inp.inflation;let b=inp.portfolio;for(let y=0;y<=60;y++){if(b>=target)return{year:CY+y,age:inp.age+y,yrs:y};b=b*(1+rr)+inp.contributions}return{year:null,age:null,yrs:Infinity}}
+
+// Coast 65
+const c65reach=findReachDate(i,c65.needed);
+const c65det=c65.ok
+  ?`You've already crossed this threshold. Your portfolio could stop receiving contributions today and still grow to ${fmt(c65.grows)} by age 65 — more than the ${fmt(c65.fn)} you'd need. You're ahead by ${fmt(i.portfolio-c65.needed)}.`
+  :`To stop investing today and still retire at 65, you would need ${fmt(c65.needed)} invested right now. At ${pct(i.nomReturn*100)}/yr, that amount would grow on its own to cover your future expenses. You're ${fmt(c65.needed-i.portfolio)} away.`+(c65reach.year?` At your current savings pace, you'll reach this by ~${c65reach.year} (age ${c65reach.age}), ${c65reach.yrs} years from now.`:'');
+
+// Coast 55
+const c55reach=findReachDate(i,c55.needed);
+const c55det=c55.ok
+  ?`You've hit this milestone. Even without another dollar invested, your portfolio grows to ${fmt(c55.grows)} by age 55 — clearing the ${fmt(c55.fn)} target. You're ahead by ${fmt(i.portfolio-c55.needed)}.`
+  :`To stop investing today and retire early at 55, you would need ${fmt(c55.needed)} right now. Compound growth over ${55-i.age} years would do the rest. You're ${fmt(c55.needed-i.portfolio)} away.`+(c55reach.year?` At your current savings pace, you'll reach this by ~${c55reach.year} (age ${c55reach.age}), ${c55reach.yrs} years from now.`:'');
+
+// Barista
+const baristaNum=bar.yrs<=0?((i.spending/i.swr)*0.5):bar.bn;
+const baristaSpend=baristaNum?baristaNum*i.swr:i.spending*0.5;
+const bardet=bar.yrs<=0
+  ?`You've reached Barista FIRE. Your portfolio can cover ${fmt(baristaSpend)}/yr — roughly half your expenses — through investment returns alone. A modest part-time income covers the rest.`
+  :bar.year?`Once your portfolio reaches ${fmt(bar.bn)}, it can generate ${fmt(baristaSpend)}/yr — about half your spending — on its own. You'd only need part-time work to cover the gap. At your current pace, you'll reach this by ~${bar.year} (age ${bar.age}), ${bar.yrs} years from now.`
+  :'At current rates, this milestone is not projected within 60 years. Consider increasing contributions or reducing spending.';
+
+// Full FIRE
+const fdet=f.yrs<=0
+  ?`You've achieved full financial independence. Your portfolio of ${fmt(i.portfolio)} exceeds your FIRE number of ${fmt(f.fireNum)}. You no longer need employment income to sustain your lifestyle.`
+  :f.year?`To never work again, you need a portfolio of ${fmt(f.fireNum)} — enough to withdraw ${fmt(i.spending)}/yr (adjusted for inflation) indefinitely at a ${pct(i.swr*100)} rate. At your current savings pace, you'll cross this line by ~${f.year} (age ${f.age}), ${f.yrs} years from now.`
+  :'At current rates, full FIRE is not projected within 60 years. Consider adjusting your spending, savings rate, or return assumptions.';
+
+$('milestones').innerHTML=
+ml('Coast FIRE · 65','badge-g',mileStatus(c65.ok,i.portfolio,c65.needed),c65.ok?'Achieved':fmt(c65.needed),c65det)+
+ml('Coast FIRE · 55','badge-b',mileStatus(c55.ok,i.portfolio,c55.needed),c55.ok?'Achieved':fmt(c55.needed),c55det)+
+ml('Barista FIRE','badge-o',mileStatus(bar.yrs<=0,i.portfolio,bar.bn),bar.yrs<=0?'Achieved':bar.year?fmt(bar.bn):'Not projected',bardet)+
+ml('Full FIRE','badge-g',mileStatus(f.yrs<=0,i.portfolio,f.fireNum),f.yrs<=0?'Achieved':f.year?fmt(f.fireNum):'Not projected',fdet);
+$('fireDetails').innerHTML=`
+<div class="di"><div class="dl">Target year</div><div class="dv">${f.year||'N/A'}</div><div class="ds">Age ~${f.age||'?'} · ${f.yrs<=0?'Already achieved':f.yrs+' years away'}</div></div>
+<div class="di"><div class="dl">FIRE number (inflation-adjusted)</div><div class="dv">~${fmt(f.fireNum)}</div><div class="ds">${fmt(i.spending)}/yr growing ${pct(i.spendGrowth*100)}/yr x ${Math.round(1/i.swr)}</div></div>
+<div class="di"><div class="dl">Projected portfolio at FIRE</div><div class="dv">~${fmt(f.bal)}</div><div class="ds">${fmt(i.portfolio)} today + ~${fmt(i.contributions)}/yr at ${pct(i.nomReturn*100)}</div></div>`;
+$('asmText').innerHTML=`<strong>Assumptions:</strong> Income: ~${fmt(i.income)}/yr · Spending: ~${fmt(i.spending)}/yr, growing ${pct(i.spendGrowth*100)}/yr · <strong>Contributions:</strong> ${fmt(i.contributions)}/yr (pre-tax ${fmt(i.contribPreTax)}, tax-free ${fmt(i.contribTaxFree)}, after-tax ${fmt(i.contribAfterTax)}) · <strong>Return:</strong> ${pct(i.nomReturn*100)} nominal · <strong>Starting portfolio:</strong> ${fmt(i.portfolio)} · <strong>FIRE number:</strong> ${Math.round(1/i.swr)}x inflation-adjusted spending (${pct(i.swr*100)} rule) · Projections are estimates, not guarantees.`}
+
+function rGrowth(i){const rows=calcProj(i),ctx=$('growthChart').getContext('2d');if(charts.g)charts.g.destroy();
+const lastRow=rows[rows.length-1];
+const pctGrowth=lastRow.bal>0?((lastRow.bal-lastRow.principal)/lastRow.bal*100):0;
+charts.g=new Chart(ctx,{type:'line',data:{labels:rows.map(r=>r.year),datasets:[
+{label:'Total Portfolio',data:rows.map(r=>r.bal),borderColor:'#008244',backgroundColor:'rgba(0,130,68,.15)',fill:true,tension:.3,pointRadius:0,borderWidth:2,order:2},
+{label:'Principal',data:rows.map(r=>r.principal),borderColor:'#1a6daa',backgroundColor:'rgba(26,109,170,.25)',fill:true,tension:.3,pointRadius:0,borderWidth:1.5,order:3},
+{label:'FIRE Number',data:rows.map(r=>r.fireNum),borderColor:'#999',borderDash:[6,4],pointRadius:0,borderWidth:1.5,fill:false,order:1},
+{label:'Barista FIRE',data:rows.map(r=>r.barista),borderColor:'#c79400',borderDash:[3,3],pointRadius:0,borderWidth:1.5,fill:false,order:1}
+]},options:{...cOpts(),plugins:{...cOpts().plugins,tooltip:{...cOpts().plugins.tooltip,callbacks:{label:c=>{if(c.datasetIndex===0)return'Total portfolio: '+fmtF(Math.round(c.parsed.y));if(c.datasetIndex===1){const g=rows[c.dataIndex].growth;return'Principal: '+fmtF(Math.round(c.parsed.y))+' · Growth: '+fmtF(Math.round(g))}return c.dataset.label+': '+fmt(c.parsed.y)}}}}}});
+$('growthSummary').innerHTML=`By ${lastRow.year} (age ${lastRow.age}): <strong>${fmtF(Math.round(lastRow.principal))}</strong> in principal (your money in) vs <strong>${fmtF(Math.round(lastRow.growth))}</strong> in investment growth (<strong>${pctGrowth.toFixed(0)}%</strong> of your portfolio is growth, not money you contributed).`;
+}
+
+function rBuckets(i){
+  const hasBuckets=portfolioMode==='detail'||contribMode==='detail';
+  $('bucketNoData').style.display=hasBuckets?'none':'block';
+  $('bucketContent').style.display=hasBuckets?'block':'none';
+  if(!hasBuckets)return;
+
+  const bRows=calcBuckets(i);
+  const bEnd=bRows[bRows.length-1];
+  const retTotal=bEnd.def+bEnd.tf+bEnd.at;
+  const curTotal=i.balDeferred+i.balTaxFree+i.balAfterTax;
+  const yrs=i.retireAge-i.age;
+
+  // Projected percentages at retirement
+  const rpDef=retTotal>0?(bEnd.def/retTotal*100).toFixed(1):0;
+  const rpTF=retTotal>0?(bEnd.tf/retTotal*100).toFixed(1):0;
+  const rpAT=retTotal>0?(bEnd.at/retTotal*100).toFixed(1):0;
+
+  $('bucketTitle').textContent=isASAP()?'Projected Tax Allocation at Earliest Retirement':'Projected Tax Allocation at Age '+i.retireAge;
+  $('bucketSubtitle').textContent=`Estimated balance in each tax bucket by ${bEnd.year} (${yrs} years from now), based on current contributions and ${pct(i.nomReturn*100)} nominal return`;
+
+  $('bucketCards').innerHTML=`
+  <div class="bucket"><div class="b-bar" style="background:var(--blue)"></div>
+    <span class="b-icon" style="background:var(--blue-light);color:var(--blue)">Tax-Deferred</span>
+    <div class="b-label">401(k), 403(b), TSP, Traditional IRA</div>
+    <div class="b-val" style="color:var(--blue)">${fmtF(Math.round(bEnd.def))}</div>
+    <div class="b-sub">${rpDef}% of retirement portfolio</div>
+    <div class="b-accts">Today: ${fmtF(i.balDeferred)} · Contributing ${fmtF(i.contribPreTax)}/yr · Growth of ${fmtF(Math.round(bEnd.def-i.balDeferred-i.contribPreTax*yrs))} over ${yrs} years. Withdrawals taxed as ordinary income at your effective rate (${pct(i.retireTax*100)}). Subject to RMDs starting at age 73.</div>
+  </div>
+  <div class="bucket"><div class="b-bar" style="background:var(--green)"></div>
+    <span class="b-icon" style="background:var(--green-light);color:var(--green)">Tax-Free</span>
+    <div class="b-label">Roth IRA, Roth 401(k), HSA</div>
+    <div class="b-val" style="color:var(--green)">${fmtF(Math.round(bEnd.tf))}</div>
+    <div class="b-sub">${rpTF}% of retirement portfolio</div>
+    <div class="b-accts">Today: ${fmtF(i.balTaxFree)} · Contributing ${fmtF(i.contribTaxFree)}/yr · Growth of ${fmtF(Math.round(bEnd.tf-i.balTaxFree-i.contribTaxFree*yrs))} over ${yrs} years. Tax-free qualified withdrawals. No RMDs for Roth IRAs. HSA is triple-tax-advantaged for medical expenses.</div>
+  </div>
+  <div class="bucket"><div class="b-bar" style="background:var(--purple)"></div>
+    <span class="b-icon" style="background:var(--purple-light);color:var(--purple)">After-Tax</span>
+    <div class="b-label">Brokerage, Taxable Accounts</div>
+    <div class="b-val" style="color:var(--purple)">${fmtF(Math.round(bEnd.at))}</div>
+    <div class="b-sub">${rpAT}% of retirement portfolio</div>
+    <div class="b-accts">Today: ${fmtF(i.balAfterTax)} · Contributing ${fmtF(i.contribAfterTax)}/yr · Growth of ${fmtF(Math.round(bEnd.at-i.balAfterTax-i.contribAfterTax*yrs))} over ${yrs} years. Only gains are taxed, typically at long-term capital gains rates. Most flexible access.</div>
+  </div>`;
+
+  // Bucket growth chart
+  const ctx=$('bucketChart').getContext('2d');if(charts.bk)charts.bk.destroy();
+  charts.bk=new Chart(ctx,{type:'line',data:{labels:bRows.map(r=>r.year),datasets:[
+    {label:'Tax-Free',data:bRows.map(r=>r.tf),borderColor:'#008244',backgroundColor:'rgba(0,130,68,.08)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+    {label:'Tax-Deferred',data:bRows.map(r=>r.def),borderColor:'#1a6daa',backgroundColor:'rgba(26,109,170,.08)',fill:true,tension:.3,pointRadius:0,borderWidth:2},
+    {label:'After-Tax',data:bRows.map(r=>r.at),borderColor:'#6b4c9a',backgroundColor:'rgba(107,76,154,.08)',fill:true,tension:.3,pointRadius:0,borderWidth:2}
+  ]},options:{...cOpts(),plugins:{...cOpts().plugins,tooltip:{...cOpts().plugins.tooltip,callbacks:{label:c=>c.dataset.label+': '+fmtF(Math.round(c.parsed.y)),footer:items=>{const t=items.reduce((s,it)=>s+it.parsed.y,0);return'Total: '+fmtF(Math.round(t))}}}}}});
+
+  // Tax impact at retirement
+  const retSpend=i.spending*Math.pow(1+i.spendGrowth,yrs);
+  const pctDef=retTotal>0?bEnd.def/retTotal:0;
+  const pctTF=retTotal>0?bEnd.tf/retTotal:0;
+  const pctAT=retTotal>0?bEnd.at/retTotal:0;
+  const wdFromDef=retSpend*pctDef;
+  const wdFromTF=retSpend*pctTF;
+  const wdFromAT=retSpend*pctAT;
+  const taxOnDef=wdFromDef*i.retireTax;
+  const taxOnAT=wdFromAT*i.retireTax*0.5;
+  const totalTax=taxOnDef+taxOnAT;
+  const effectiveRate=retSpend>0?totalTax/retSpend*100:0;
+  $('taxImpact').innerHTML=`
+  <div class="bs-item"><div class="bs-label">Annual spending in retirement</div><div class="bs-val">${fmtF(Math.round(retSpend))}</div><div class="bs-sub">Inflation-adjusted at age ${i.retireAge} (${bEnd.year})</div></div>
+  <div class="bs-item"><div class="bs-label">Estimated annual tax</div><div class="bs-val" style="color:var(--red)">${fmtF(Math.round(totalTax))}</div><div class="bs-sub">${fmtF(Math.round(taxOnDef))} on tax-deferred + ${fmtF(Math.round(taxOnAT))} on after-tax gains</div></div>
+  <div class="bs-item"><div class="bs-label">Effective retirement tax rate</div><div class="bs-val">${pct(effectiveRate)}</div><div class="bs-sub">Blended across all withdrawal sources</div></div>
+  <div class="bs-item"><div class="bs-label">Tax-free withdrawals</div><div class="bs-val" style="color:var(--green)">${fmtF(Math.round(wdFromTF))}/yr</div><div class="bs-sub">${(pctTF*100).toFixed(0)}% of spending from Roth/HSA — no tax due</div></div>
+  <div class="bs-item"><div class="bs-label">Total portfolio at retirement</div><div class="bs-val">${fmt(retTotal)}</div><div class="bs-sub">Up from ${fmt(curTotal)} today (${retTotal>0&&curTotal>0?((retTotal/curTotal-1)*100).toFixed(0)+'% growth':'N/A'})</div></div>
+  <div class="bs-item"><div class="bs-label">Tax-free share</div><div class="bs-val" style="color:var(--green)">${(pctTF*100).toFixed(1)}%</div><div class="bs-sub">Higher means more tax-efficient retirement income</div></div>`;
+}
+
+function renderMC(){const i=getInputs();
+// Build starting portfolio options from growth projection
+const rows=calcProj(i);
+const fire=findFire(i);
+const rr=i.nomReturn-i.inflation;
+const retireYrs=i.retireAge-i.age;
+const sel=$('mcStartSelect');
+const prevVal=sel.value;
+
+// Build options: portfolio at retirement age and nearby years, plus FIRE number
+const options=[];
+// FIRE number option
+const fireStartBal=fire.bal||i.portfolio;
+options.push({value:'fire',label:`At FIRE (${fmt(fireStartBal)}) — age ${fire.age||'?'}, ${fire.year||'?'}`,sb:fireStartBal});
+
+// Portfolio at retirement age (and ±5 years if different from FIRE age)
+const ages=new Set();
+for(let offset=-5;offset<=5;offset+=5){
+  const targetAge=i.retireAge+offset;
+  if(targetAge<=i.age||targetAge>100)continue;
+  ages.add(targetAge);
+}
+// Also add a couple intermediate years
+const midAge=Math.round(i.age+(retireYrs*0.5));
+if(midAge>i.age&&midAge<i.retireAge)ages.add(midAge);
+
+const sortedAges=[...ages].sort((a,b)=>a-b);
+sortedAges.forEach(targetAge=>{
+  const yrsOut=targetAge-i.age;
+  if(yrsOut<=0)return;
+  let bal=i.portfolio;
+  for(let y=0;y<yrsOut;y++)bal=bal*(1+rr)+i.contributions;
+  const targetYear=CY+yrsOut;
+  options.push({value:'age_'+targetAge,label:`At age ${targetAge} (${fmt(bal)}) — ${targetYear}`,sb:bal});
+});
+
+// Current portfolio
+options.push({value:'current',label:`Current portfolio (${fmt(i.portfolio)}) — today`,sb:i.portfolio});
+
+sel.innerHTML=options.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
+// Restore previous selection if still valid, otherwise default to retirement age
+if(prevVal&&[...sel.options].some(o=>o.value===prevVal)){sel.value=prevVal}
+else{const retOpt=options.find(o=>o.value==='age_'+i.retireAge);sel.value=retOpt?retOpt.value:'fire'}
+
+const selected=options.find(o=>o.value===sel.value)||options[0];
+const sb=selected.sb;
+const adjSpendYrs=sel.value==='current'?0:sel.value==='fire'?(fire.yrs||0):parseInt(sel.value.replace('age_',''))-i.age;
+const aw=i.spending*Math.pow(1+i.spendGrowth,adjSpendYrs);
+
+const res=mcMode==='mc'?runMC(i,sb,aw):runHist(i,sb,aw);
+const labels=Array.from({length:i.retireDur+1},(_,j)=>j),rate=res.rate*100,ch=rate>=90?'#008244':rate>=70?'#c79400':'#c4262e',circ=2*Math.PI*50,dash=circ*res.rate;
+$('mcRing').innerHTML=`<div class="sr-ring"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#e5e5e5" stroke-width="8"/><circle cx="60" cy="60" r="50" fill="none" stroke="${ch}" stroke-width="8" stroke-dasharray="${dash} ${circ}" stroke-linecap="round"/></svg><div class="sv"><div class="sn" style="color:${ch}">${rate.toFixed(0)}%</div><div class="sl">Success</div></div></div><div class="sr-info"><h3>${mcMode==='mc'?'Monte Carlo':'Historical Backtest'} Results</h3><p>${res.ok} of ${res.total} simulations survived ${i.retireDur} years of retirement, withdrawing ~${fmt(res.aw)}/yr from a ${fmt(res.sb)} starting portfolio. ${rate>=90?'Your plan appears well-positioned.':rate>=70?'Some risk exists. Consider lower spending or higher savings.':'Significant depletion risk. Consider adjusting your plan.'}</p></div>`;
+$('mcTitle').textContent=mcMode==='mc'?'Monte Carlo Simulation':'Historical Backtest Simulation';
+$('mcSub').textContent=mcMode==='mc'?`${res.total} randomized return sequences (mean ${pct((i.nomReturn-i.inflation)*100)}, vol ${pct(i.mcVol*100)})`:`${res.total} regime-switching historical cycles over ${i.retireDur} years`;
+const ctx=$('mcChart').getContext('2d');if(charts.mc)charts.mc.destroy();
+const ds=[
+{label:'90th',data:res.pc[90],borderColor:'rgba(0,130,68,.5)',backgroundColor:'rgba(0,130,68,.04)',fill:'+1',borderWidth:1,pointRadius:0},
+{label:'75th',data:res.pc[75],borderColor:'rgba(26,109,170,.5)',backgroundColor:'rgba(26,109,170,.05)',fill:'+1',borderWidth:1,pointRadius:0},
+{label:'Median',data:res.pc[50],borderColor:'#008244',borderWidth:2.5,pointRadius:0,fill:false},
+{label:'25th',data:res.pc[25],borderColor:'rgba(26,109,170,.5)',backgroundColor:'rgba(26,109,170,.05)',fill:'+1',borderWidth:1,pointRadius:0},
+{label:'10th',data:res.pc[10],borderColor:'rgba(196,38,46,.5)',fill:false,borderWidth:1,pointRadius:0},
+{label:'Zero',data:labels.map(()=>0),borderColor:'rgba(196,38,46,.35)',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}];
+res.paths.slice(0,30).forEach((p,j)=>{ds.push({label:j===0?'Sample paths':'',data:p,borderColor:p[p.length-1]>0?'rgba(0,130,68,.06)':'rgba(196,38,46,.08)',borderWidth:.7,pointRadius:0,fill:false})});
+charts.mc=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{...cOpts(),plugins:{...cOpts().plugins,legend:{display:false}}}});
+$('mcLgnd').innerHTML=`<span><i class="dot" style="background:#008244"></i> Median</span><span><i class="dot" style="background:rgba(26,109,170,.6)"></i> 25th-75th</span><span><i class="dot" style="background:rgba(0,130,68,.5)"></i> 10th-90th</span><span><i class="dot" style="background:rgba(0,0,0,.15)"></i> Sample paths</span>`}
+
+function rWD(i){const rates=[.03,.035,.04,.045,.05,.06],colors=['#008244','#1a6daa','#333','#6b6b6b','#c79400','#c4262e'],labels=Array.from({length:i.retireDur+1},(_,j)=>j);
+const ds=rates.map((r,j)=>({label:pct(r*100),data:calcWD(i,r),borderColor:colors[j],borderWidth:2,pointRadius:0,tension:.2,fill:false}));
+ds.push({label:'Zero',data:labels.map(()=>0),borderColor:'rgba(196,38,46,.3)',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false});
+const ctx=$('wdChart').getContext('2d');if(charts.wd)charts.wd.destroy();
+charts.wd=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:cOpts()});
+$('wdLgnd').innerHTML=rates.map((r,j)=>`<span><i class="dot" style="background:${colors[j]}"></i> ${pct(r*100)}</span>`).join('');
+const wr=calcWRSuccess(i),ctx2=$('wrChart').getContext('2d');if(charts.wr)charts.wr.destroy();
+charts.wr=new Chart(ctx2,{type:'bar',data:{labels:wr.map(d=>pct(d.rate)),datasets:[{label:'Success %',data:wr.map(d=>d.success),backgroundColor:wr.map(d=>d.success>=90?'rgba(0,130,68,.6)':d.success>=70?'rgba(199,148,0,.6)':'rgba(196,38,46,.6)'),borderColor:wr.map(d=>d.success>=90?'#008244':d.success>=70?'#c79400':'#c4262e'),borderWidth:1,borderRadius:3}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+'% success'}}},scales:{y:{beginAtZero:true,max:100,grid:{color:'#f0f0f0'},ticks:{color:'#999',callback:v=>v+'%'}},x:{grid:{display:false},ticks:{color:'#999'}}}}})}
+
+function rSens(i){const sd=calcSR(i),csr=i.income>0?Math.round(i.contributions/i.income*100):0,ctx=$('srChart').getContext('2d');if(charts.sr)charts.sr.destroy();
+charts.sr=new Chart(ctx,{type:'bar',data:{labels:sd.map(d=>d.rate+'%'),datasets:[{label:'Years to FIRE',data:sd.map(d=>d.years),backgroundColor:sd.map(d=>Math.abs(d.rate-csr)<5?'rgba(0,130,68,.6)':'rgba(26,109,170,.35)'),borderColor:sd.map(d=>Math.abs(d.rate-csr)<5?'#008244':'rgba(26,109,170,.5)'),borderWidth:1,borderRadius:3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'},ticks:{color:'#999',callback:v=>v+' yrs'},title:{display:true,text:'Years to FIRE',color:'#999'}},x:{grid:{display:false},ticks:{color:'#999'},title:{display:true,text:'Savings Rate (% of gross income)',color:'#999'}}}}});
+$('srGrid').innerHTML=sd.map(d=>`<div class="sc ${Math.abs(d.rate-csr)<5?'hl':''}"><div class="sp">${d.rate}% saved</div><div style="font-weight:600;color:${d.years!==null&&d.years<=15?'var(--green)':d.years!==null?'var(--gray-700)':'var(--gray-400)'}">${d.years!==null?d.years+' yrs':'80+'}</div></div>`).join('')}
+
+function rTable(i){const rows=calcProj(i);let h=`<thead><tr><th>Year</th><th>Age</th><th>Portfolio</th><th>Contributions</th><th>Spending</th><th>FIRE Number</th><th>Progress</th><th>Status</th></tr></thead><tbody>`;
+rows.forEach(r=>{const p=r.bal/r.fireNum*100;h+=`<tr class="${r.isFire?'fire-row':''}"><td>${r.year}</td><td>${r.age}</td><td>${fmtF(r.bal)}</td><td>${fmtF(r.cont)}</td><td>${fmtF(r.spend)}</td><td>${fmtF(r.fireNum)}</td><td style="color:${p>=100?'var(--green)':p>=75?'var(--gold)':'var(--gray-500)'}">${p.toFixed(1)}%</td><td style="font-family:var(--font)">${r.isFire?'FIRE':r.isBarista?'Barista':'Accumulating'}</td></tr>`});
+h+='</tbody>';$('dataTable').innerHTML=h}
+
+function cOpts(){return{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#6b6b6b',usePointStyle:true,pointStyle:'line',font:{size:11}}},tooltip:{backgroundColor:'#fff',titleColor:'#1a1a1a',bodyColor:'#6b6b6b',borderColor:'#e5e5e5',borderWidth:1,cornerRadius:4,padding:10,callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}},scales:{y:{grid:{color:'#f0f0f0'},ticks:{color:'#999',callback:v=>fmt(v)}},x:{grid:{color:'#fafafa'},ticks:{color:'#999'}}}}}
+
+const allFields=['age','retireAge','portfolio','income','spending','contribTotal','contribPreTax','contribTaxFree','contribAfterTax','balDeferred','balTaxFree','balAfterTax','returnRate','inflation','swr','spendGrowth','retireTax','mcRuns','mcVol','retireDur'];
+function exportURL(){const p=allFields.map(f=>{const el=$(f);if(el.tagName==='SELECT')return f+'='+encodeURIComponent(el.value);const v=el.hasAttribute('data-money')?el.value.replace(/[^0-9.\-]/g,''):el.value;return f+'='+encodeURIComponent(v)}).join('&'),u=location.origin+location.pathname+'?'+p;navigator.clipboard.writeText(u).then(()=>alert('Dashboard link copied to clipboard.')).catch(()=>prompt('Copy this URL:',u))}
+function loadFromURL(){const p=new URLSearchParams(location.search);allFields.forEach(f=>{if(p.has(f)){const el=$(f);if(!el)return;if(el.tagName==='SELECT'){el.value=p.get(f)}else{el.value=p.get(f);if(el.hasAttribute('data-money'))fmtMoney(el)}}})}
+
+// ═══ LOCAL PERSISTENCE ═══
+const STORAGE_KEY='fire_dashboard_saved';
+function saveLocally(){
+  try{
+    const data={};
+    allFields.forEach(f=>{const el=$(f);if(!el)return;data[f]=el.hasAttribute('data-money')?el.value.replace(/[^0-9.\-]/g,''):el.value});
+    data._contribMode=contribMode;
+    data._portfolioMode=portfolioMode;
+    data._savedAt=new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+    const status=$('saveStatus');
+    status.style.display='block';
+    status.textContent='Saved '+new Date().toLocaleTimeString();
+    status.style.color='var(--green)';
+    setTimeout(()=>{status.style.color='var(--gray-400)'},2000);
+  }catch(e){
+    const status=$('saveStatus');
+    status.style.display='block';
+    status.textContent='Could not save — localStorage may be unavailable';
+    status.style.color='var(--red)';
+  }
+}
+function loadSaved(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    allFields.forEach(f=>{
+      if(data[f]===undefined)return;
+      const el=$(f);if(!el)return;
+      if(el.tagName==='SELECT'){el.value=data[f]}
+      else{el.value=data[f];if(el.hasAttribute('data-money'))fmtMoney(el)}
+    });
+    if(data._contribMode){contribMode=data._contribMode;document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode===contribMode));$('contribSimple').style.display=contribMode==='simple'?'block':'none';$('contribDetail').style.display=contribMode==='detail'?'block':'none'}
+    if(data._portfolioMode){portfolioMode=data._portfolioMode;document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode===portfolioMode));$('portfolioSimple').style.display=portfolioMode==='simple'?'block':'none';$('portfolioDetail').style.display=portfolioMode==='detail'?'block':'none'}
+    if(data._savedAt){const status=$('saveStatus');status.style.display='block';status.textContent='Restored from '+new Date(data._savedAt).toLocaleDateString()+' '+new Date(data._savedAt).toLocaleTimeString()}
+    return true;
+  }catch(e){return false}
+}
+function clearSaved(){
+  try{localStorage.removeItem(STORAGE_KEY)}catch(e){}
+  const status=$('saveStatus');status.style.display='none';
+}
+
+function resetDefaults(){contribMode='simple';portfolioMode='simple';document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode==='simple'));document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode==='simple'));$('contribSimple').style.display='block';$('contribDetail').style.display='none';$('portfolioSimple').style.display='block';$('portfolioDetail').style.display='none';const d={age:35,retireAge:'65',portfolio:770000,income:170000,spending:110000,contribTotal:42500,contribPreTax:0,contribTaxFree:0,contribAfterTax:0,balDeferred:0,balTaxFree:0,balAfterTax:0,returnRate:7,inflation:2,swr:4,spendGrowth:2,retireTax:20,mcRuns:500,mcVol:12,retireDur:30};Object.entries(d).forEach(([k,v])=>{const el=$(k);if(!el)return;if(el.tagName==='SELECT'){el.value=v}else{el.value=v;if(el.hasAttribute('data-money'))fmtMoney(el)}});clearSaved();updateContribSum();updatePortfolioSum();recalc()}
+
+// Init: URL params take priority, then saved data, then defaults
+const hasURLParams=location.search.length>1;
+if(hasURLParams){loadFromURL()}else{loadSaved()}
+updateContribSum();updatePortfolioSum();recalc();
+</script>
+</body>
+</html>
