@@ -673,7 +673,7 @@ const ds=[
 {label:'10th',data:res.pc[10],borderColor:'rgba(196,38,46,.5)',fill:false,borderWidth:1,pointRadius:0},
 {label:'Zero',data:labels.map(()=>0),borderColor:'rgba(196,38,46,.35)',borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}];
 res.paths.slice(0,30).forEach((p,j)=>{ds.push({label:j===0?'Sample paths':'',data:p,borderColor:p[p.length-1]>0?'rgba(0,130,68,.06)':'rgba(196,38,46,.08)',borderWidth:.7,pointRadius:0,fill:false})});
-charts.mc=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{...cOpts(),plugins:{...cOpts().plugins,legend:{display:false}}}});
+charts.mc=new Chart(ctx,{type:'line',data:{labels,datasets:ds},options:{...cOpts(),plugins:{...cOpts().plugins,legend:{display:false},tooltip:{...cOpts().plugins.tooltip,filter:item=>item.datasetIndex<=5,callbacks:{label:c=>{const names=['90th percentile','75th percentile','Median','25th percentile','10th percentile','Zero line'];return names[c.datasetIndex]+': '+fmt(c.parsed.y)}}}}}});
 $('mcLgnd').innerHTML=`<span><i class="dot" style="background:#008244"></i> Median</span><span><i class="dot" style="background:rgba(26,109,170,.6)"></i> 25th-75th</span><span><i class="dot" style="background:rgba(0,130,68,.5)"></i> 10th-90th</span><span><i class="dot" style="background:rgba(0,0,0,.15)"></i> Sample paths</span>`}
 
 function rWD(i){const rates=[.03,.035,.04,.045,.05,.06],colors=['#008244','#1a6daa','#333','#6b6b6b','#c79400','#c4262e'],labels=Array.from({length:i.retireDur+1},(_,j)=>j);
