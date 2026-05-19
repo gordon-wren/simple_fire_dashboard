@@ -89,7 +89,9 @@ canvas{width:100%!important;max-height:400px}
 .mile .badge{display:inline-block;font-size:.62rem;font-weight:600;padding:.15rem .45rem;border-radius:3px;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.04em}
 .badge-g{background:var(--green-light);color:var(--green)}.badge-b{background:var(--blue-light);color:var(--blue)}.badge-o{background:var(--gold-light);color:var(--gold)}
 .mile h4{font-size:.82rem;color:var(--gray-600);font-weight:400;margin-bottom:.3rem}
-.mile .tgt{font-size:1.5rem;font-weight:600;margin-bottom:.15rem}.tgt.gr{color:var(--green)}.tgt.dk{color:var(--gray-900)}
+.mile .tgt{font-size:1.5rem;font-weight:600;margin-bottom:.1rem}.tgt.gr{color:var(--green)}.tgt.dk{color:var(--gray-900)}
+.mile .reach{font-size:.82rem;font-weight:700;color:var(--blue);margin:.1rem 0 .3rem}
+.mile .reach.no-track{font-size:.72rem;font-weight:500;color:var(--red)}
 .mile .det{font-size:.73rem;color:var(--gray-500);line-height:1.5}
 
 .dr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:1rem}
@@ -165,7 +167,7 @@ canvas{width:100%!important;max-height:400px}
 <div class="app">
 <aside class="sidebar">
   <div class="ig"><div class="ig-t">Personal</div>
-    <div class="fr"><div class="fld"><label>Current age</label><input type="number" id="age" value="35" min="18" max="80"></div><div class="fld"><label>Retirement age</label><select id="retireAge"><option value="asap">As soon as possible</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option><option value="65" selected>65</option><option value="67">67</option><option value="70">70</option><option value="75">75</option><option value="80">80</option></select></div></div>
+    <div class="fr"><div class="fld"><label>Current age</label><input type="number" id="age" value="25" min="18" max="80"></div><div class="fld"><label>Retirement age</label><select id="retireAge"><option value="asap">As soon as possible</option><option value="40">40</option><option value="45">45</option><option value="50" selected>50</option><option value="55">55</option><option value="60">60</option><option value="65">65</option><option value="67">67</option><option value="70">70</option><option value="75">75</option><option value="80">80</option></select></div></div>
   </div>
   <div class="ig"><div class="ig-t">Income &amp; Spending</div>
     <div class="fld"><label>Annual gross income</label><input type="text" id="income" data-money value="170,000"><div class="hn">Pre-tax household income</div></div>
@@ -174,7 +176,7 @@ canvas{width:100%!important;max-height:400px}
   <div class="ig"><div class="ig-t">Current Portfolio</div>
     <div class="tg" style="margin-bottom:.6rem"><button class="tgb on" data-pmode="simple" onclick="setPortfolioMode('simple')">Total</button><button class="tgb" data-pmode="detail" onclick="setPortfolioMode('detail')">By Tax Bucket</button></div>
     <div id="portfolioSimple">
-      <div class="fld"><label>Total portfolio value</label><input type="text" id="portfolio" data-money value="770,000"><div class="hn">Sum of all investment accounts</div></div>
+      <div class="fld"><label>Total portfolio value</label><input type="text" id="portfolio" data-money value="300,000"><div class="hn">Sum of all investment accounts</div></div>
     </div>
     <div id="portfolioDetail" style="display:none">
     <div class="fr3">
@@ -484,7 +486,8 @@ $('kpis').innerHTML=`
 <div class="kpi"><div class="kpi-l">Coast FIRE</div><div class="kpi-v ${c.ok?'gr':''}">${c.ok?'Achieved':fmt(c.needed)}</div><div class="kpi-s">Age ${i.retireAge} target</div></div>`}
 
 function rOverview(i){const f=findFire(i),c65=calcCoast(i,65),c55=calcCoast(i,55),bar=calcBarista(i);
-function ml(bg,bc,status,tgt,det){return`<div class="mile ${status}"><span class="badge ${bc}">${bg}</span><div class="tgt ${status==='ok'?'gr':'dk'}">${tgt}</div><div class="det">${det}</div></div>`}
+function ml(bg,bc,status,tgt,det,reach){const reachHtml=status!=='ok'?(reach===null?`<div class="reach no-track">Not on track to achieve given current assumptions.</div>`:(reach?`<div class="reach">${reach}</div>`:'')):''
+return`<div class="mile ${status}"><span class="badge ${bc}">${bg}</span><div class="tgt ${status==='ok'?'gr':'dk'}">${tgt}</div>${reachHtml}<div class="det">${det}</div></div>`}
 function mileStatus(ok,portfolio,needed){if(ok)return'ok';if(!needed||needed===Infinity)return'danger';const pct=portfolio/needed;return pct>=0.75?'warn':'danger'}
 
 // When will portfolio reach a target value?
@@ -494,33 +497,33 @@ function findReachDate(inp,target){const rr=inp.nomReturn-inp.inflation;let b=in
 const c65reach=findReachDate(i,c65.needed);
 const c65det=c65.ok
   ?`You've already crossed this threshold. Your portfolio could stop receiving contributions today and still grow to ${fmt(c65.grows)} by age 65 — more than the ${fmt(c65.fn)} you'd need. You're ahead by ${fmt(i.portfolio-c65.needed)}.`
-  :`To stop investing today and still retire at 65, you would need ${fmt(c65.needed)} invested right now. At ${pct(i.nomReturn*100)}/yr, that amount would grow on its own to cover your future expenses. You're ${fmt(c65.needed-i.portfolio)} away.`+(c65reach.year?` At your current savings pace, you'll reach this by ~${c65reach.year} (age ${c65reach.age}), ${c65reach.yrs} years from now.`:'');
+  :`To stop investing today and still retire at 65, you would need ${fmt(c65.needed)} invested right now. At ${pct(i.nomReturn*100)}/yr, that amount would grow on its own to cover your future expenses. You're ${fmt(c65.needed-i.portfolio)} away.`;
 
 // Coast 55
 const c55reach=findReachDate(i,c55.needed);
 const c55det=c55.ok
   ?`You've hit this milestone. Even without another dollar invested, your portfolio grows to ${fmt(c55.grows)} by age 55 — clearing the ${fmt(c55.fn)} target. You're ahead by ${fmt(i.portfolio-c55.needed)}.`
-  :`To stop investing today and retire early at 55, you would need ${fmt(c55.needed)} right now. Compound growth over ${55-i.age} years would do the rest. You're ${fmt(c55.needed-i.portfolio)} away.`+(c55reach.year?` At your current savings pace, you'll reach this by ~${c55reach.year} (age ${c55reach.age}), ${c55reach.yrs} years from now.`:'');
+  :`To stop investing today and retire early at 55, you would need ${fmt(c55.needed)} right now. Compound growth over ${55-i.age} years would do the rest. You're ${fmt(c55.needed-i.portfolio)} away.`;
 
 // Barista
 const baristaNum=bar.yrs<=0?((i.spending/i.swr)*0.5):bar.bn;
 const baristaSpend=baristaNum?baristaNum*i.swr:i.spending*0.5;
 const bardet=bar.yrs<=0
   ?`You've reached Barista FIRE. Your portfolio can cover ${fmt(baristaSpend)}/yr — roughly half your expenses — through investment returns alone. A modest part-time income covers the rest.`
-  :bar.year?`Once your portfolio reaches ${fmt(bar.bn)}, it can generate ${fmt(baristaSpend)}/yr — about half your spending — on its own. You'd only need part-time work to cover the gap. At your current pace, you'll reach this by ~${bar.year} (age ${bar.age}), ${bar.yrs} years from now.`
-  :'At current rates, this milestone is not projected within 60 years. Consider increasing contributions or reducing spending.';
+  :bar.year?`Once your portfolio reaches ${fmt(bar.bn)}, it can generate ${fmt(baristaSpend)}/yr — about half your spending — on its own. You'd only need part-time work to cover the gap.`
+  :'Consider increasing contributions or reducing spending.';
 
 // Full FIRE
 const fdet=f.yrs<=0
   ?`You've achieved full financial independence. Your portfolio of ${fmt(i.portfolio)} exceeds your FIRE number of ${fmt(f.fireNum)}. You no longer need employment income to sustain your lifestyle.`
-  :f.year?`To never work again, you need a portfolio of ${fmt(f.fireNum)} — enough to withdraw ${fmt(i.spending)}/yr (adjusted for inflation) indefinitely at a ${pct(i.swr*100)} rate. At your current savings pace, you'll cross this line by ~${f.year} (age ${f.age}), ${f.yrs} years from now.`
-  :'At current rates, full FIRE is not projected within 60 years. Consider adjusting your spending, savings rate, or return assumptions.';
+  :f.year?`To never work again, you need a portfolio of ${fmt(f.fireNum)} — enough to withdraw ${fmt(i.spending)}/yr (adjusted for inflation) indefinitely at a ${pct(i.swr*100)} rate.`
+  :'Consider adjusting your spending, savings rate, or return assumptions.';
 
 $('milestones').innerHTML=
-ml('Coast FIRE · 65','badge-g',mileStatus(c65.ok,i.portfolio,c65.needed),c65.ok?'Achieved':fmt(c65.needed),c65det)+
-ml('Coast FIRE · 55','badge-b',mileStatus(c55.ok,i.portfolio,c55.needed),c55.ok?'Achieved':fmt(c55.needed),c55det)+
-ml('Barista FIRE','badge-o',mileStatus(bar.yrs<=0,i.portfolio,bar.bn),bar.yrs<=0?'Achieved':bar.year?fmt(bar.bn):'Not projected',bardet)+
-ml('Full FIRE','badge-g',mileStatus(f.yrs<=0,i.portfolio,f.fireNum),f.yrs<=0?'Achieved':f.year?fmt(f.fireNum):'Not projected',fdet);
+ml('Coast FIRE · 65','badge-g',mileStatus(c65.ok,i.portfolio,c65.needed),c65.ok?'Achieved':fmt(c65.needed),c65det,c65.ok?undefined:c65reach.year?'~'+c65reach.year+' · age '+c65reach.age:null)+
+ml('Coast FIRE · 55','badge-b',mileStatus(c55.ok,i.portfolio,c55.needed),c55.ok?'Achieved':fmt(c55.needed),c55det,c55.ok?undefined:c55reach.year?'~'+c55reach.year+' · age '+c55reach.age:null)+
+ml('Barista FIRE','badge-o',mileStatus(bar.yrs<=0,i.portfolio,bar.bn),bar.yrs<=0?'Achieved':bar.year?fmt(bar.bn):'Not projected',bardet,bar.yrs<=0?undefined:bar.year?'~'+bar.year+' · age '+bar.age:null)+
+ml('Full FIRE','badge-g',mileStatus(f.yrs<=0,i.portfolio,f.fireNum),f.yrs<=0?'Achieved':f.year?fmt(f.fireNum):'Not projected',fdet,f.yrs<=0?undefined:f.year?'~'+f.year+' · age '+f.age:null);
 $('fireDetails').innerHTML=`
 <div class="di"><div class="dl">Target year</div><div class="dv">${f.year||'N/A'}</div><div class="ds">Age ~${f.age||'?'} · ${f.yrs<=0?'Already achieved':f.yrs+' years away'}</div></div>
 <div class="di"><div class="dl">FIRE number (inflation-adjusted)</div><div class="dv">~${fmt(f.fireNum)}</div><div class="ds">${fmt(i.spending)}/yr growing ${pct(i.spendGrowth*100)}/yr x ${Math.round(1/i.swr)}</div></div>
@@ -744,7 +747,7 @@ function clearSaved(){
   const status=$('saveStatus');status.style.display='none';
 }
 
-function resetDefaults(){contribMode='simple';portfolioMode='simple';document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode==='simple'));document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode==='simple'));$('contribSimple').style.display='block';$('contribDetail').style.display='none';$('portfolioSimple').style.display='block';$('portfolioDetail').style.display='none';const d={age:35,retireAge:'65',portfolio:770000,income:170000,spending:110000,contribTotal:42500,contribPreTax:0,contribTaxFree:0,contribAfterTax:0,balDeferred:0,balTaxFree:0,balAfterTax:0,returnRate:7,inflation:2,swr:4,spendGrowth:2,retireTax:20,mcRuns:500,mcVol:12,retireDur:30};Object.entries(d).forEach(([k,v])=>{const el=$(k);if(!el)return;if(el.tagName==='SELECT'){el.value=v}else{el.value=v;if(el.hasAttribute('data-money'))fmtMoney(el)}});clearSaved();updateContribSum();updatePortfolioSum();recalc()}
+function resetDefaults(){contribMode='simple';portfolioMode='simple';document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode==='simple'));document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode==='simple'));$('contribSimple').style.display='block';$('contribDetail').style.display='none';$('portfolioSimple').style.display='block';$('portfolioDetail').style.display='none';const d={age:25,retireAge:'50',portfolio:300000,income:170000,spending:110000,contribTotal:42500,contribPreTax:0,contribTaxFree:0,contribAfterTax:0,balDeferred:0,balTaxFree:0,balAfterTax:0,returnRate:7,inflation:2,swr:4,spendGrowth:2,retireTax:20,mcRuns:500,mcVol:12,retireDur:30};Object.entries(d).forEach(([k,v])=>{const el=$(k);if(!el)return;if(el.tagName==='SELECT'){el.value=v}else{el.value=v;if(el.hasAttribute('data-money'))fmtMoney(el)}});clearSaved();updateContribSum();updatePortfolioSum();recalc()}
 
 // Init: URL params take priority, then saved data, then defaults
 const hasURLParams=location.search.length>1;
