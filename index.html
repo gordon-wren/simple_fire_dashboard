@@ -36,9 +36,9 @@ body{font-family:var(--font);background:var(--gray-100);color:var(--gray-700);li
 .btn-p{background:var(--green);border-color:var(--green);color:var(--white)}
 .btn-p:hover{background:var(--green-dark)}
 
-.app{display:flex;min-height:calc(100vh - 60px)}
-.sidebar{width:340px;min-width:340px;background:var(--white);border-right:1px solid var(--gray-200);padding:1.5rem;overflow-y:auto;height:calc(100vh - 60px)}
-.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;height:calc(100vh - 60px);max-width:1140px}
+.app{display:flex;min-height:calc(100vh - 101px)}
+.sidebar{width:340px;min-width:340px;background:var(--white);border-right:1px solid var(--gray-200);padding:1.5rem;overflow-y:auto;height:calc(100vh - 101px)}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;height:calc(100vh - 101px);max-width:1140px}
 
 .ig{margin-bottom:1.25rem}
 .ig-t{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:2px solid var(--green);display:inline-block}
@@ -150,6 +150,57 @@ canvas{width:100%!important;max-height:400px}
 
 @media(max-width:1024px){.app{flex-direction:column}.sidebar{width:100%;min-width:auto;height:auto;border-right:none;border-bottom:1px solid var(--gray-200)}.main{height:auto}.bucket-row{grid-template-columns:1fr}}
 @media print{.sidebar{display:none}.header-actions{display:none}.tabs{display:none}.pnl{display:block!important;page-break-inside:avoid}}
+
+/* App-level page nav */
+.app-nav{display:flex;gap:.5rem;padding:.45rem 1.25rem;border-bottom:1px solid var(--gray-200);background:var(--white);align-items:center}
+.app-nav-btn{font-family:var(--font);font-size:.78rem;font-weight:500;padding:.35rem .9rem;border-radius:var(--radius);border:1px solid var(--gray-200);cursor:pointer;color:var(--gray-500);background:var(--white);transition:all .15s}
+.app-nav-btn:hover{background:var(--gray-50);border-color:var(--gray-400)}
+.app-nav-btn.on{background:var(--green);color:var(--white);border-color:var(--green)}
+
+/* Spending Plan page */
+#view-spending{display:none;background:var(--gray-100);min-height:calc(100vh - 101px);padding:1.5rem 0}
+.sp-page{max-width:760px;margin:0 auto;padding:0 1.5rem}
+.sp-section{background:var(--white);border:1px solid var(--gray-200);border-radius:6px;padding:1.25rem;margin-bottom:1.25rem;box-shadow:var(--shadow)}
+.sp-header{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--green);border-bottom:1px solid var(--gray-200);padding-bottom:.5rem;margin-bottom:.85rem}
+.sp-header-r{display:flex;align-items:center;gap:.5rem}
+.sp-target{font-size:.65rem;color:var(--gray-400);font-weight:400;text-transform:none;letter-spacing:0}
+.sp-pct{font-size:.72rem;font-weight:600;padding:.15rem .45rem;border-radius:3px;background:var(--gray-100);color:var(--gray-600)}
+.sp-pct.ok{background:#d1fae5;color:#065f46}
+.sp-pct.warn{background:#fef3c7;color:#92400e}
+.sp-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
+.sp-row label{flex:1;font-size:.82rem;color:var(--gray-600)}
+.sp-row input[type=text]{width:120px;padding:.4rem .55rem;border:1px solid var(--gray-300);border-radius:var(--radius);font-family:var(--font);font-size:.82rem;color:var(--gray-900);background:var(--white);transition:border-color .15s}
+.sp-row input[type=text]:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 2px rgba(0,130,68,.12)}
+.sp-display{width:120px;padding:.4rem .55rem;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius);font-size:.82rem;color:var(--gray-500);text-align:right}
+.sp-row.auto{opacity:.7}
+.sp-total{display:flex;justify-content:space-between;align-items:center;font-size:.88rem;font-weight:600;padding:.55rem 0 0;border-top:1px solid var(--gray-200);margin-top:.45rem;color:var(--gray-700)}
+.sp-total-v{font-size:1rem;font-weight:700;color:var(--green)}
+.sp-guilt{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:1.15rem;margin-bottom:1.25rem}
+.sp-guilt .sp-header{border-bottom:none;padding-bottom:0;margin-bottom:.75rem}
+.sp-guilt-val{font-size:1.6rem;font-weight:700;color:var(--green)}
+.sp-guilt-sub{font-size:.75rem;color:var(--gray-500);margin-top:.25rem;line-height:1.5}
+.sp-add{font-size:.72rem;color:var(--green);cursor:pointer;background:none;border:1px dashed var(--gray-300);border-radius:var(--radius);padding:.25rem .65rem;margin:.3rem 0;display:inline-flex;align-items:center;gap:.3rem;font-family:var(--font)}
+.sp-add:hover{border-color:var(--green)}
+.sp-del{font-size:.82rem;color:var(--gray-300);cursor:pointer;background:none;border:none;padding:0 .25rem;line-height:1;flex-shrink:0;transition:color .15s}
+.sp-del:hover{color:#ef4444}
+.sp-income{background:var(--gray-50);border-radius:6px;padding:.85rem 1rem;margin-bottom:1.25rem;border:1px solid var(--gray-200)}
+.sp-income .sp-header{border-bottom:none;padding-bottom:0;margin-bottom:.65rem}
+.sp-label-input{flex:1;padding:.38rem .5rem;border:1px solid var(--gray-300);border-radius:var(--radius);font-size:.8rem;font-family:var(--font);color:var(--gray-700);background:var(--white);min-width:0;transition:border-color .15s}
+.sp-label-input:focus{outline:none;border-color:var(--green)}
+.sp-note{font-size:.7rem;color:var(--gray-400);font-weight:400;text-transform:none;letter-spacing:0;margin-left:.35rem}
+.sp-pct-col{display:flex;flex-direction:column;gap:.18rem;align-items:flex-end}
+.sp-pct-row{display:flex;align-items:center;gap:.25rem}
+.sp-pct-lbl{font-size:.58rem;color:var(--gray-400);font-weight:400;text-transform:none;letter-spacing:0;min-width:2.8rem}
+.sp-pct.gr{background:var(--gray-100);color:var(--gray-500)}
+/* Dual-partner mode */
+.sp-dual-bar{display:flex;justify-content:flex-end;margin-bottom:1rem}
+.sp-col-header{display:none;padding:0 0 .3rem;gap:.6rem;justify-content:flex-end;align-items:center}
+.sp-page.dual .sp-col-header{display:flex}
+.sp-col-hdr{width:120px;text-align:center;font-size:.6rem;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.sp-b-input{display:none}
+.sp-page.dual .sp-b-input{display:block}
+.sp-combined{display:none;width:120px;padding:.4rem .55rem;background:var(--green-light);border:1px solid #bbf7d0;border-radius:var(--radius);font-size:.82rem;color:var(--green-dark);text-align:right;font-weight:500;flex-shrink:0}
+.sp-page.dual .sp-combined{display:block}
 </style>
 </head>
 <body>
@@ -164,14 +215,20 @@ canvas{width:100%!important;max-height:400px}
     <button class="btn btn-p" onclick="window.print()">Print / Export</button>
   </div>
 </header>
-<div class="app">
+<div class="app-nav">
+  <button class="app-nav-btn on" data-view="fire" onclick="setAppView('fire')">FIRE Dashboard</button>
+  <button class="app-nav-btn" data-view="spending" onclick="setAppView('spending')">Spending Plan</button>
+</div>
+<div class="app" id="view-fire">
 <aside class="sidebar">
   <div class="ig"><div class="ig-t">Personal</div>
     <div class="fr"><div class="fld"><label>Current age</label><input type="number" id="age" value="25" min="18" max="80"></div><div class="fld"><label>Retirement age</label><select id="retireAge"><option value="asap">As soon as possible</option><option value="40">40</option><option value="45">45</option><option value="50" selected>50</option><option value="55">55</option><option value="60">60</option><option value="65">65</option><option value="67">67</option><option value="70">70</option><option value="75">75</option><option value="80">80</option></select></div></div>
   </div>
-  <div class="ig"><div class="ig-t">Income &amp; Spending</div>
+  <div class="ig"><div class="ig-t">Income</div>
     <div class="fld"><label>Annual gross income</label><input type="text" id="income" data-money value="170,000"><div class="hn">Pre-tax household income</div></div>
-    <div class="fld"><label>Annual spending</label><input type="text" id="spending" data-money value="110,000"></div>
+  </div>
+  <div class="ig"><div class="ig-t">Retirement Spending</div>
+    <div class="fld"><label>Annual retirement spending</label><input type="text" id="spending" data-money value="110,000"><div class="hn">What you expect to spend per year in retirement (today's $). Sets your FIRE number.</div></div>
   </div>
   <div class="ig"><div class="ig-t">Current Portfolio</div>
     <div class="tg" style="margin-bottom:.6rem"><button class="tgb on" data-pmode="simple" onclick="setPortfolioMode('simple')">Total</button><button class="tgb" data-pmode="detail" onclick="setPortfolioMode('detail')">By Tax Bucket</button></div>
@@ -200,6 +257,7 @@ canvas{width:100%!important;max-height:400px}
     </div>
     <div class="contrib-sum" id="contribSum"></div>
     </div>
+  <div class="hn" id="contribSyncNote" style="display:none;color:var(--green);margin-top:.3rem">↑ Auto-synced from Spending Plan</div>
   </div>
   <div class="sep"></div>
   <div class="ig"><div class="ig-t">Assumptions</div>
@@ -291,6 +349,71 @@ canvas{width:100%!important;max-height:400px}
   </div>
 
   <div class="pnl" id="p-table"><div class="card"><div class="card-t">Year-by-Year Projection</div><div class="card-s">Accumulation phase detail with inflation-adjusted values</div><div class="tw"><table class="dt" id="dataTable"></table></div></div></div>
+</div>
+</div>
+
+<div id="view-spending">
+<div class="sp-page">
+
+  <div class="sp-dual-bar">
+    <button id="sp-dual-btn" class="btn" onclick="setSpDualMode(!spDualMode)">+ Add Partner</button>
+  </div>
+
+  <div class="sp-income">
+    <div class="sp-header">Income</div>
+    <div class="sp-col-header"><div class="sp-col-hdr">Partner 1</div><div class="sp-col-hdr">Partner 2</div><div class="sp-col-hdr">Combined</div></div>
+    <div class="sp-row"><label for="sp-gross">Gross Monthly Income</label><input type="text" id="sp-gross" data-sp-money placeholder="0"><input type="text" id="sp-gross-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-gross-c">—</div></div>
+    <div class="sp-row"><label for="sp-net">Net Monthly Income (take-home)</label><input type="text" id="sp-net" data-sp-money placeholder="0"><input type="text" id="sp-net-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-net-c">—</div></div>
+  </div>
+
+  <div class="sp-section">
+    <div class="sp-header">Fixed Costs<div class="sp-header-r"><span class="sp-target">target 50–60%</span><div class="sp-pct-col"><div class="sp-pct-row"><span class="sp-pct" id="sp-fixed-pct">—</span><span class="sp-pct-lbl">of net</span></div><div class="sp-pct-row"><span class="sp-pct gr" id="sp-fixed-gpct">—</span><span class="sp-pct-lbl">of gross</span></div></div></div></div>
+    <div class="sp-col-header"><div class="sp-col-hdr">Partner 1</div><div class="sp-col-hdr">Partner 2</div><div class="sp-col-hdr">Combined</div></div>
+    <div class="sp-row"><label>Rent / Mortgage</label><input type="text" id="sp-rent" data-sp-money placeholder="0"><input type="text" id="sp-rent-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-rent-c">—</div></div>
+    <div class="sp-row"><label>Utilities</label><input type="text" id="sp-utilities" data-sp-money placeholder="0"><input type="text" id="sp-utilities-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-utilities-c">—</div></div>
+    <div class="sp-row"><label>Insurance</label><input type="text" id="sp-insurance" data-sp-money placeholder="0"><input type="text" id="sp-insurance-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-insurance-c">—</div></div>
+    <div class="sp-row"><label>Car / Transportation</label><input type="text" id="sp-car" data-sp-money placeholder="0"><input type="text" id="sp-car-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-car-c">—</div></div>
+    <div class="sp-row"><label>Debt Payments</label><input type="text" id="sp-debt" data-sp-money placeholder="0"><input type="text" id="sp-debt-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-debt-c">—</div></div>
+    <div class="sp-row"><label>Groceries</label><input type="text" id="sp-groceries" data-sp-money placeholder="0"><input type="text" id="sp-groceries-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-groceries-c">—</div></div>
+    <div class="sp-row"><label>Clothes</label><input type="text" id="sp-clothes" data-sp-money placeholder="0"><input type="text" id="sp-clothes-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-clothes-c">—</div></div>
+    <div class="sp-row"><label>Phone</label><input type="text" id="sp-phone" data-sp-money placeholder="0"><input type="text" id="sp-phone-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-phone-c">—</div></div>
+    <div class="sp-row"><label>Subscriptions</label><input type="text" id="sp-subscriptions" data-sp-money placeholder="0"><input type="text" id="sp-subscriptions-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-subscriptions-c">—</div></div>
+    <div id="sp-fixed-custom"></div>
+    <button class="sp-add" onclick="spAddRow('fixed')">+ Add Item</button>
+    <div class="sp-row auto" style="margin-top:.35rem"><label>Miscellaneous (15%)</label><div class="sp-display" id="sp-misc-display">$0</div></div>
+    <div class="sp-total"><span>Fixed Costs Total</span><span class="sp-total-v" id="sp-fixed-total-display">$0</span></div>
+  </div>
+
+  <div class="sp-section">
+    <div class="sp-header">Investments<div class="sp-header-r"><span class="sp-target">target 10%</span><div class="sp-pct-col"><div class="sp-pct-row"><span class="sp-pct" id="sp-invest-pct">—</span><span class="sp-pct-lbl">of net</span></div><div class="sp-pct-row"><span class="sp-pct gr" id="sp-invest-gpct">—</span><span class="sp-pct-lbl">of gross</span></div></div></div></div>
+    <div class="sp-col-header"><div class="sp-col-hdr">Partner 1</div><div class="sp-col-hdr">Partner 2</div><div class="sp-col-hdr">Combined</div></div>
+    <div class="sp-row"><label>401k / 403b / 457 Pre-Tax <span class="tip" title="2026 limit: $23,500 employee contribution. Age 50+ catch-up: +$7,500 ($31,000 total). Ages 60–63 SECURE 2.0 catch-up: +$11,250 ($34,750 total).">?</span></label><input type="text" id="sp-pretax" data-sp-money placeholder="0"><input type="text" id="sp-pretax-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-pretax-c">—</div></div>
+    <div class="sp-row"><label>HSA Savings <span class="tip" title="2026 limit: $4,300 self-only / $8,550 family. Age 55+ catch-up: +$1,000.">?</span></label><input type="text" id="sp-hsa" data-sp-money placeholder="0"><input type="text" id="sp-hsa-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-hsa-c">—</div></div>
+    <div class="sp-row"><label>Post-Tax Retirement Savings</label><input type="text" id="sp-retirement" data-sp-money placeholder="0"><input type="text" id="sp-retirement-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-retirement-c">—</div></div>
+    <div class="sp-row"><label>Stocks / Brokerage</label><input type="text" id="sp-stocks" data-sp-money placeholder="0"><input type="text" id="sp-stocks-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-stocks-c">—</div></div>
+    <div id="sp-invest-custom"></div>
+    <button class="sp-add" onclick="spAddRow('invest')">+ Add Item</button>
+    <div class="sp-total"><span>Investments Total<span class="sp-note">→ synced to FIRE contributions</span></span><span class="sp-total-v" id="sp-invest-total-display">$0</span></div>
+  </div>
+
+  <div class="sp-section">
+    <div class="sp-header">Savings Goals<div class="sp-header-r"><span class="sp-target">target 5–10%</span><div class="sp-pct-col"><div class="sp-pct-row"><span class="sp-pct" id="sp-savings-pct">—</span><span class="sp-pct-lbl">of net</span></div><div class="sp-pct-row"><span class="sp-pct gr" id="sp-savings-gpct">—</span><span class="sp-pct-lbl">of gross</span></div></div></div></div>
+    <div class="sp-col-header"><div class="sp-col-hdr">Partner 1</div><div class="sp-col-hdr">Partner 2</div><div class="sp-col-hdr">Combined</div></div>
+    <div class="sp-row"><label>Vacations</label><input type="text" id="sp-vacations" data-sp-money placeholder="0"><input type="text" id="sp-vacations-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-vacations-c">—</div></div>
+    <div class="sp-row"><label>Gifts</label><input type="text" id="sp-gifts" data-sp-money placeholder="0"><input type="text" id="sp-gifts-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-gifts-c">—</div></div>
+    <div class="sp-row"><label>Long Term Emergency Fund</label><input type="text" id="sp-emergency" data-sp-money placeholder="0"><input type="text" id="sp-emergency-b" data-sp-money class="sp-b-input" placeholder="0"><div class="sp-combined" id="sp-emergency-c">—</div></div>
+    <div id="sp-savings-custom"></div>
+    <button class="sp-add" onclick="spAddRow('savings')">+ Add Item</button>
+    <div class="sp-total"><span>Savings Total<span class="sp-note">→ synced to FIRE contributions</span></span><span class="sp-total-v" id="sp-savings-total-display">$0</span></div>
+  </div>
+
+  <div class="sp-guilt">
+    <div class="sp-header">Guilt-Free Spending<div class="sp-header-r"><span class="sp-target">target 20–35%</span><div class="sp-pct-col"><div class="sp-pct-row"><span class="sp-pct" id="sp-guilt-pct">—</span><span class="sp-pct-lbl">of net</span></div><div class="sp-pct-row"><span class="sp-pct gr" id="sp-guilt-gpct">—</span><span class="sp-pct-lbl">of gross</span></div></div></div></div>
+    <div style="font-size:.78rem;color:var(--gray-500);margin-bottom:.75rem">Dining out, movies, hobbies — anything you want!</div>
+    <div class="sp-guilt-val" id="sp-guilt-total-display">$0 / month</div>
+    <div class="sp-guilt-sub">Net income minus fixed costs, investments, and savings goals</div>
+  </div>
+
 </div>
 </div>
 
@@ -699,6 +822,120 @@ h+='</tbody>';$('dataTable').innerHTML=h}
 
 function cOpts(){return{responsive:true,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#6b6b6b',usePointStyle:true,pointStyle:'line',font:{size:11}}},tooltip:{backgroundColor:'#fff',titleColor:'#1a1a1a',bodyColor:'#6b6b6b',borderColor:'#e5e5e5',borderWidth:1,cornerRadius:4,padding:10,callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)}}},scales:{y:{grid:{color:'#f0f0f0'},ticks:{color:'#999',callback:v=>fmt(v)}},x:{grid:{color:'#fafafa'},ticks:{color:'#999'}}}}}
 
+// ─── SPENDING PLAN ───
+let appView='fire';
+let spCustomCounts={fixed:0,invest:0,savings:0};
+let spDualMode=false;
+
+function setSpDualMode(on){
+  spDualMode=on;
+  document.querySelector('.sp-page').classList.toggle('dual',on);
+  const btn=$('sp-dual-btn');
+  if(btn){btn.textContent=on?'Remove Partner':'+ Add Partner';btn.classList.toggle('btn-p',on)}
+  syncSpendingPlan();
+}
+
+function spRowVal(id){
+  const a=spV(id);
+  if(!spDualMode)return a;
+  const b=spV(id+'-b');
+  const t=a+b;
+  const el=$(id+'-c');if(el)el.textContent='$'+Math.round(t).toLocaleString();
+  return t;
+}
+
+function setAppView(v){
+  appView=v;
+  document.querySelectorAll('.app-nav-btn').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+  $('view-fire').style.display=v==='fire'?'flex':'none';
+  $('view-spending').style.display=v==='spending'?'block':'none';
+  if(v==='fire')syncSpendingPlan();
+}
+
+function spV(id){const el=$(id);if(!el)return 0;return parseFloat(el.value.replace(/[^0-9.\-]/g,''))||0}
+
+function spDisplay(id,val){const el=$(id);if(el)el.textContent='$'+Math.round(val).toLocaleString()}
+
+function spUpdatePct(id,val,net,range){
+  const el=$(id);if(!el)return;
+  if(!net){el.textContent='—';el.className='sp-pct';return}
+  const p=Math.round(val/net*100);
+  el.textContent=p+'%';
+  el.className='sp-pct'+(p>=range[0]&&p<=range[1]?' ok':' warn');
+}
+function spUpdateGrossPct(id,val,gross){
+  const el=$(id);if(!el)return;
+  if(!gross){el.textContent='—';el.className='sp-pct gr';return}
+  el.textContent=Math.round(val/gross*100)+'%';
+  el.className='sp-pct gr';
+}
+
+function fmtSpMoney(el){const raw=el.value.replace(/[^0-9.\-]/g,'');if(!raw){el.value='';return}const num=parseFloat(raw);if(isNaN(num)){el.value='';return}el.value=Math.round(num).toLocaleString()}
+
+function spCustomTotal(section){
+  let t=0;
+  document.querySelectorAll('[data-sp-custom="'+section+'"]').forEach(el=>{
+    const a=parseFloat(el.value.replace(/[^0-9.\-]/g,''))||0;
+    const b=spDualMode?(parseFloat(($(el.id+'-b')||{}).value?.replace(/[^0-9.\-]/g,'')||'0')||0):0;
+    const row=a+b;t+=row;
+    if(spDualMode){const c=$(el.id.replace(/-val$/,'-c'));if(c)c.textContent='$'+Math.round(row).toLocaleString()}
+  });
+  return t;
+}
+function syncSpendingPlan(){
+  const net=spRowVal('sp-net');
+  const gross=spRowVal('sp-gross');
+  let fixedBase=['sp-rent','sp-utilities','sp-insurance','sp-car','sp-debt','sp-groceries','sp-clothes','sp-phone','sp-subscriptions'].reduce((s,id)=>s+spRowVal(id),0)+spCustomTotal('fixed');
+  const misc=fixedBase*0.15;
+  const fixedTotal=fixedBase+misc;
+  const investTotal=['sp-pretax','sp-hsa','sp-retirement','sp-stocks'].reduce((s,id)=>s+spRowVal(id),0)+spCustomTotal('invest');
+  const savingsTotal=['sp-vacations','sp-gifts','sp-emergency'].reduce((s,id)=>s+spRowVal(id),0)+spCustomTotal('savings');
+  const guiltFree=Math.max(0,net-fixedTotal-investTotal-savingsTotal);
+  spDisplay('sp-misc-display',misc);
+  spDisplay('sp-fixed-total-display',fixedTotal);
+  spDisplay('sp-invest-total-display',investTotal);
+  spDisplay('sp-savings-total-display',savingsTotal);
+  const gt=$('sp-guilt-total-display');if(gt)gt.textContent='$'+Math.round(guiltFree).toLocaleString()+' / month';
+  spUpdatePct('sp-fixed-pct',fixedTotal,net,[50,60]);
+  spUpdatePct('sp-invest-pct',investTotal,net,[10,10]);
+  spUpdatePct('sp-savings-pct',savingsTotal,net,[5,10]);
+  spUpdatePct('sp-guilt-pct',guiltFree,net,[20,35]);
+  spUpdateGrossPct('sp-fixed-gpct',fixedTotal,gross);
+  spUpdateGrossPct('sp-invest-gpct',investTotal,gross);
+  spUpdateGrossPct('sp-savings-gpct',savingsTotal,gross);
+  spUpdateGrossPct('sp-guilt-gpct',guiltFree,gross);
+  const annualContrib=(investTotal+savingsTotal)*12;
+  if(annualContrib>0){$('contribTotal').value=Math.round(annualContrib).toLocaleString();const n=$('contribSyncNote');if(n)n.style.display='block'}
+  else{const n=$('contribSyncNote');if(n)n.style.display='none'}
+  recalc();
+}
+
+function spAddRow(section){
+  spCustomCounts[section]++;
+  const n=spCustomCounts[section];
+  const bid='sp-custom-'+section+'-'+n;
+  const row=document.createElement('div');
+  row.className='sp-row';row.id=bid+'-row';
+  const inputStyle='width:120px;padding:.4rem .55rem;border:1px solid var(--gray-300);border-radius:4px;font-family:inherit;font-size:.82rem;color:var(--gray-900);background:var(--white)';
+  row.innerHTML=`<input type="text" class="sp-label-input" id="${bid}-label" placeholder="Item name"><input type="text" id="${bid}-val" data-sp-custom="${section}" placeholder="0" style="${inputStyle}"><input type="text" id="${bid}-val-b" class="sp-b-input" placeholder="0" style="${inputStyle}"><div class="sp-combined" id="${bid}-c">—</div><button class="sp-del" onclick="spDelRow('${section}',${n})" title="Remove">×</button>`;
+  $('sp-'+section+'-custom').appendChild(row);
+  const valA=row.querySelector('[data-sp-custom]');
+  valA.addEventListener('blur',()=>{fmtSpMoney(valA);syncSpendingPlan()});
+  valA.addEventListener('focus',()=>{const raw=valA.value.replace(/[^0-9.\-]/g,'');valA.value=raw;setTimeout(()=>valA.select(),0)});
+  const valB=$(bid+'-val-b');
+  valB.addEventListener('blur',()=>{fmtSpMoney(valB);syncSpendingPlan()});
+  valB.addEventListener('focus',()=>{const raw=valB.value.replace(/[^0-9.\-]/g,'');valB.value=raw;setTimeout(()=>valB.select(),0)});
+}
+
+function spDelRow(section,n){const row=$('sp-custom-'+section+'-'+n+'-row');if(row)row.remove();syncSpendingPlan()}
+
+const spBaseFields=['sp-gross','sp-net','sp-rent','sp-utilities','sp-insurance','sp-car','sp-debt','sp-groceries','sp-clothes','sp-phone','sp-subscriptions','sp-pretax','sp-hsa','sp-retirement','sp-stocks','sp-vacations','sp-gifts','sp-emergency'];
+
+document.querySelectorAll('[data-sp-money]').forEach(el=>{
+  el.addEventListener('blur',()=>{fmtSpMoney(el);syncSpendingPlan()});
+  el.addEventListener('focus',()=>{const raw=el.value.replace(/[^0-9.\-]/g,'');el.value=raw;setTimeout(()=>el.select(),0)});
+});
+
 const allFields=['age','retireAge','portfolio','income','spending','contribTotal','contribPreTax','contribTaxFree','contribAfterTax','balDeferred','balTaxFree','balAfterTax','returnRate','inflation','swr','spendGrowth','retireTax','mcRuns','mcVol','retireDur'];
 function exportURL(){const p=allFields.map(f=>{const el=$(f);if(el.tagName==='SELECT')return f+'='+encodeURIComponent(el.value);const v=el.hasAttribute('data-money')?el.value.replace(/[^0-9.\-]/g,''):el.value;return f+'='+encodeURIComponent(v)}).join('&'),u=location.origin+location.pathname+'?'+p;navigator.clipboard.writeText(u).then(()=>alert('Dashboard link copied to clipboard.')).catch(()=>prompt('Copy this URL:',u))}
 function loadFromURL(){const p=new URLSearchParams(location.search);allFields.forEach(f=>{if(p.has(f)){const el=$(f);if(!el)return;if(el.tagName==='SELECT'){el.value=p.get(f)}else{el.value=p.get(f);if(el.hasAttribute('data-money'))fmtMoney(el)}}})}
@@ -712,6 +949,7 @@ function saveLocally(){
     data._contribMode=contribMode;
     data._portfolioMode=portfolioMode;
     data._savedAt=new Date().toISOString();
+    const spData={};spBaseFields.forEach(f=>{const el=$(f);if(el)spData[f]=el.value.replace(/[^0-9.\-]/g,'');const elb=$(f+'-b');if(elb)spData[f+'-b']=elb.value.replace(/[^0-9.\-]/g,'')});spData['_dualMode']=spDualMode;['fixed','invest','savings'].forEach(s=>{const rows=[];$('sp-'+s+'-custom').querySelectorAll('.sp-row').forEach(row=>{const l=row.querySelector('.sp-label-input'),v=row.querySelector('[data-sp-custom]');if(l&&v){const vb=$(v.id+'-b');rows.push({label:l.value,val:v.value.replace(/[^0-9.\-]/g,''),valb:vb?vb.value.replace(/[^0-9.\-]/g,''):''})}});spData['_custom_'+s]=rows});data._sp=spData;
     localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
     const status=$('saveStatus');
     status.style.display='block';
@@ -739,6 +977,7 @@ function loadSaved(){
     if(data._contribMode){contribMode=data._contribMode;document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode===contribMode));$('contribSimple').style.display=contribMode==='simple'?'block':'none';$('contribDetail').style.display=contribMode==='detail'?'block':'none'}
     if(data._portfolioMode){portfolioMode=data._portfolioMode;document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode===portfolioMode));$('portfolioSimple').style.display=portfolioMode==='simple'?'block':'none';$('portfolioDetail').style.display=portfolioMode==='detail'?'block':'none'}
     if(data._savedAt){const status=$('saveStatus');status.style.display='block';status.textContent='Restored from '+new Date(data._savedAt).toLocaleDateString()+' '+new Date(data._savedAt).toLocaleTimeString()}
+    if(data._sp){const spData=data._sp;spBaseFields.forEach(f=>{if(spData[f]!==undefined){const el=$(f);if(el){el.value=spData[f];if(spData[f])fmtSpMoney(el)}};if(spData[f+'-b']!==undefined){const elb=$(f+'-b');if(elb){elb.value=spData[f+'-b'];if(spData[f+'-b'])fmtSpMoney(elb)}}});if(spData['_dualMode'])setSpDualMode(true);['fixed','invest','savings'].forEach(s=>{(spData['_custom_'+s]||[]).forEach(r=>{spAddRow(s);const n=spCustomCounts[s];const l=$('sp-custom-'+s+'-'+n+'-label'),v=$('sp-custom-'+s+'-'+n+'-val'),vb=$('sp-custom-'+s+'-'+n+'-val-b');if(l)l.value=r.label;if(v){v.value=r.val;if(r.val)fmtSpMoney(v)};if(vb&&r.valb){vb.value=r.valb;fmtSpMoney(vb)}})});syncSpendingPlan()}
     return true;
   }catch(e){return false}
 }
@@ -747,7 +986,7 @@ function clearSaved(){
   const status=$('saveStatus');status.style.display='none';
 }
 
-function resetDefaults(){contribMode='simple';portfolioMode='simple';document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode==='simple'));document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode==='simple'));$('contribSimple').style.display='block';$('contribDetail').style.display='none';$('portfolioSimple').style.display='block';$('portfolioDetail').style.display='none';const d={age:25,retireAge:'50',portfolio:300000,income:170000,spending:110000,contribTotal:42500,contribPreTax:0,contribTaxFree:0,contribAfterTax:0,balDeferred:0,balTaxFree:0,balAfterTax:0,returnRate:7,inflation:2,swr:4,spendGrowth:2,retireTax:20,mcRuns:500,mcVol:12,retireDur:30};Object.entries(d).forEach(([k,v])=>{const el=$(k);if(!el)return;if(el.tagName==='SELECT'){el.value=v}else{el.value=v;if(el.hasAttribute('data-money'))fmtMoney(el)}});clearSaved();updateContribSum();updatePortfolioSum();recalc()}
+function resetDefaults(){contribMode='simple';portfolioMode='simple';document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode==='simple'));document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode==='simple'));$('contribSimple').style.display='block';$('contribDetail').style.display='none';$('portfolioSimple').style.display='block';$('portfolioDetail').style.display='none';const d={age:25,retireAge:'50',portfolio:300000,income:170000,spending:110000,contribTotal:42500,contribPreTax:0,contribTaxFree:0,contribAfterTax:0,balDeferred:0,balTaxFree:0,balAfterTax:0,returnRate:7,inflation:2,swr:4,spendGrowth:2,retireTax:20,mcRuns:500,mcVol:12,retireDur:30};Object.entries(d).forEach(([k,v])=>{const el=$(k);if(!el)return;if(el.tagName==='SELECT'){el.value=v}else{el.value=v;if(el.hasAttribute('data-money'))fmtMoney(el)}});clearSaved();updateContribSum();updatePortfolioSum();spBaseFields.forEach(f=>{const el=$(f);if(el)el.value='';const elb=$(f+'-b');if(elb)elb.value=''});['fixed','invest','savings'].forEach(s=>{$('sp-'+s+'-custom').innerHTML='';spCustomCounts[s]=0});setSpDualMode(false);['sp-misc-display','sp-fixed-total-display','sp-invest-total-display','sp-savings-total-display'].forEach(id=>{const el=$(id);if(el)el.textContent='$0'});const sgt=$('sp-guilt-total-display');if(sgt)sgt.textContent='$0 / month';['sp-fixed-pct','sp-invest-pct','sp-savings-pct','sp-guilt-pct'].forEach(id=>{const el=$(id);if(el){el.textContent='—';el.className='sp-pct'}});const csn=$('contribSyncNote');if(csn)csn.style.display='none';recalc()}
 
 // Init: URL params take priority, then saved data, then defaults
 const hasURLParams=location.search.length>1;
