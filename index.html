@@ -162,8 +162,9 @@ canvas{width:100%!important;max-height:400px}
 #view-spending{display:none;background:var(--gray-100);min-height:calc(100vh - 101px);padding:1.5rem 0}
 .sp-layout{display:flex;gap:1.5rem;max-width:1300px;margin:0 auto;padding:0 1.5rem;align-items:flex-start}
 .sp-page{flex:1;min-width:0;padding:0}
-.sp-chart-panel{width:400px;min-width:400px;position:sticky;top:1.5rem}
-.sp-sankey-card{background:var(--white);border:1px solid var(--gray-200);border-radius:6px;padding:1.25rem;box-shadow:var(--shadow)}
+.sp-chart-panel{width:400px;min-width:400px;position:sticky;top:1.5rem;height:calc(100vh - 101px - 3rem)}
+.sp-sankey-card{background:var(--white);border:1px solid var(--gray-200);border-radius:6px;padding:1.25rem;box-shadow:var(--shadow);height:100%;display:flex;flex-direction:column;box-sizing:border-box}
+.sp-sankey-wrap{flex:1;position:relative;min-height:0}
 .sp-sankey-title{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:1rem;border-bottom:1px solid var(--gray-200);padding-bottom:.5rem}
 .sp-sankey-empty{font-size:.82rem;color:var(--gray-400);text-align:center;padding:4rem 1rem}
 .sp-section{background:var(--white);border:1px solid var(--gray-200);border-radius:6px;padding:1.25rem;margin-bottom:1.25rem;box-shadow:var(--shadow)}
@@ -429,7 +430,9 @@ canvas{width:100%!important;max-height:400px}
     <div class="sp-sankey-card">
       <div class="sp-sankey-title">Monthly Cash Flow</div>
       <div id="sankeyEmpty" class="sp-sankey-empty">Enter income and spending<br>to see your cash flow</div>
-      <canvas id="sankeyChart" style="display:none;height:620px"></canvas>
+      <div id="sankeyWrap" class="sp-sankey-wrap" style="display:none">
+        <canvas id="sankeyChart"></canvas>
+      </div>
     </div>
   </div>
 
@@ -944,14 +947,14 @@ function nodeColor(n){
   return'#999';
 }
 function rSankey({gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,guiltFree}){
-  const canvas=$('sankeyChart'),empty=$('sankeyEmpty');
+  const canvas=$('sankeyChart'),empty=$('sankeyEmpty'),wrap=$('sankeyWrap');
   if(!canvas)return;
   if(!gross){
-    canvas.style.display='none';empty.style.display='block';
+    wrap.style.display='none';empty.style.display='block';
     if(charts.sk){charts.sk.destroy();charts.sk=null}
     return;
   }
-  canvas.style.display='block';empty.style.display='none';
+  wrap.style.display='block';empty.style.display='none';
   const taxes=Math.max(0,gross-net-pretax-hsa);
   const preTaxCombined=pretax+hsa;
   const flows=[];
