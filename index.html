@@ -218,6 +218,8 @@ canvas{width:100%!important;max-height:400px}
   </div>
   <div class="header-actions">
     <button class="btn" onclick="exportURL()">Share Link</button>
+    <button class="btn" onclick="$('importFile').click()">Import</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importFromFile(this)">
     <button class="btn" onclick="saveLocally()" id="saveBtn">Save</button>
     <div id="saveStatus" style="font-size:.68rem;color:var(--gray-400);display:none;align-self:center;white-space:nowrap"></div>
     <button class="btn btn-p" onclick="window.print()">Print / Export</button>
@@ -427,7 +429,7 @@ canvas{width:100%!important;max-height:400px}
     <div class="sp-sankey-card">
       <div class="sp-sankey-title">Monthly Cash Flow</div>
       <div id="sankeyEmpty" class="sp-sankey-empty">Enter income and spending<br>to see your cash flow</div>
-      <canvas id="sankeyChart" style="display:none;height:460px"></canvas>
+      <canvas id="sankeyChart" style="display:none;height:620px"></canvas>
     </div>
   </div>
 
@@ -907,7 +909,8 @@ function syncSpendingPlan(){
   const fixedTotal=fixedBase+misc;
   const investTotal=['sp-pretax','sp-hsa','sp-retirement','sp-stocks'].reduce((s,id)=>s+spRowVal(id),0)+spCustomTotal('invest');
   const savingsTotal=['sp-vacations','sp-gifts','sp-emergency'].reduce((s,id)=>s+spRowVal(id),0)+spCustomTotal('savings');
-  const guiltFree=Math.max(0,net-fixedTotal-investTotal-savingsTotal);
+  const postTaxInvest=['sp-retirement','sp-stocks'].reduce((s,id)=>s+spRowVal(id),0)+spCustomTotal('invest');
+  const guiltFree=Math.max(0,net-fixedTotal-postTaxInvest-savingsTotal);
   spDisplay('sp-misc-display',misc);
   spDisplay('sp-fixed-total-display',fixedTotal);
   spDisplay('sp-invest-total-display',investTotal);
@@ -925,7 +928,6 @@ function syncSpendingPlan(){
   if(annualContrib>0){$('contribTotal').value=Math.round(annualContrib).toLocaleString();const n=$('contribSyncNote');if(n)n.style.display='block'}
   else{const n=$('contribSyncNote');if(n)n.style.display='none'}
   const pretax=spRowVal('sp-pretax'),hsa=spRowVal('sp-hsa');
-  const postTaxInvest=['sp-retirement','sp-stocks'].reduce((s,id)=>s+spRowVal(id),0)+spCustomTotal('invest');
   rSankey({gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,guiltFree});
   recalc();
 }
@@ -1024,42 +1026,57 @@ function loadFromURL(){const p=new URLSearchParams(location.search);allFields.fo
 
 // ═══ LOCAL PERSISTENCE ═══
 const STORAGE_KEY='fire_dashboard_saved';
+function collectData(){
+  const data={};
+  allFields.forEach(f=>{const el=$(f);if(!el)return;data[f]=el.hasAttribute('data-money')?el.value.replace(/[^0-9.\-]/g,''):el.value});
+  data._contribMode=contribMode;data._portfolioMode=portfolioMode;data._savedAt=new Date().toISOString();
+  const spData={};spBaseFields.forEach(f=>{const el=$(f);if(el)spData[f]=el.value.replace(/[^0-9.\-]/g,'');const elb=$(f+'-b');if(elb)spData[f+'-b']=elb.value.replace(/[^0-9.\-]/g,'')});spData['_dualMode']=spDualMode;['fixed','invest','savings'].forEach(s=>{const rows=[];$('sp-'+s+'-custom').querySelectorAll('.sp-row').forEach(row=>{const l=row.querySelector('.sp-label-input'),v=row.querySelector('[data-sp-custom]');if(l&&v){const vb=$(v.id+'-b');rows.push({label:l.value,val:v.value.replace(/[^0-9.\-]/g,''),valb:vb?vb.value.replace(/[^0-9.\-]/g,''):''})}});spData['_custom_'+s]=rows});data._sp=spData;
+  return data;
+}
+function applyData(data){
+  allFields.forEach(f=>{if(data[f]===undefined)return;const el=$(f);if(!el)return;if(el.tagName==='SELECT'){el.value=data[f]}else{el.value=data[f];if(el.hasAttribute('data-money'))fmtMoney(el)}});
+  if(data._contribMode){contribMode=data._contribMode;document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode===contribMode));$('contribSimple').style.display=contribMode==='simple'?'block':'none';$('contribDetail').style.display=contribMode==='detail'?'block':'none'}
+  if(data._portfolioMode){portfolioMode=data._portfolioMode;document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode===portfolioMode));$('portfolioSimple').style.display=portfolioMode==='simple'?'block':'none';$('portfolioDetail').style.display=portfolioMode==='detail'?'block':'none'}
+  if(data._sp){const spData=data._sp;spBaseFields.forEach(f=>{if(spData[f]!==undefined){const el=$(f);if(el){el.value=spData[f];if(spData[f])fmtSpMoney(el)}};if(spData[f+'-b']!==undefined){const elb=$(f+'-b');if(elb){elb.value=spData[f+'-b'];if(spData[f+'-b'])fmtSpMoney(elb)}}});if(spData['_dualMode'])setSpDualMode(true);['fixed','invest','savings'].forEach(s=>{(spData['_custom_'+s]||[]).forEach(r=>{spAddRow(s);const n=spCustomCounts[s];const l=$('sp-custom-'+s+'-'+n+'-label'),v=$('sp-custom-'+s+'-'+n+'-val'),vb=$('sp-custom-'+s+'-'+n+'-val-b');if(l)l.value=r.label;if(v){v.value=r.val;if(r.val)fmtSpMoney(v)};if(vb&&r.valb){vb.value=r.valb;fmtSpMoney(vb)}})});syncSpendingPlan()}
+}
 function saveLocally(){
   try{
-    const data={};
-    allFields.forEach(f=>{const el=$(f);if(!el)return;data[f]=el.hasAttribute('data-money')?el.value.replace(/[^0-9.\-]/g,''):el.value});
-    data._contribMode=contribMode;
-    data._portfolioMode=portfolioMode;
-    data._savedAt=new Date().toISOString();
-    const spData={};spBaseFields.forEach(f=>{const el=$(f);if(el)spData[f]=el.value.replace(/[^0-9.\-]/g,'');const elb=$(f+'-b');if(elb)spData[f+'-b']=elb.value.replace(/[^0-9.\-]/g,'')});spData['_dualMode']=spDualMode;['fixed','invest','savings'].forEach(s=>{const rows=[];$('sp-'+s+'-custom').querySelectorAll('.sp-row').forEach(row=>{const l=row.querySelector('.sp-label-input'),v=row.querySelector('[data-sp-custom]');if(l&&v){const vb=$(v.id+'-b');rows.push({label:l.value,val:v.value.replace(/[^0-9.\-]/g,''),valb:vb?vb.value.replace(/[^0-9.\-]/g,''):''})}});spData['_custom_'+s]=rows});data._sp=spData;
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-    const status=$('saveStatus');
-    status.style.display='block';
-    status.textContent='Saved '+new Date().toLocaleTimeString();
-    status.style.color='var(--green)';
+    const data=collectData();
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='fire-dashboard-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    clearSaved();
+    const status=$('saveStatus');status.style.display='block';status.textContent='Downloaded '+new Date().toLocaleTimeString();status.style.color='var(--green)';
     setTimeout(()=>{status.style.color='var(--gray-400)'},2000);
   }catch(e){
-    const status=$('saveStatus');
-    status.style.display='block';
-    status.textContent='Could not save — localStorage may be unavailable';
-    status.style.color='var(--red)';
+    const status=$('saveStatus');status.style.display='block';status.textContent='Save failed';status.style.color='var(--red)';
   }
+}
+function importFromFile(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      applyData(data);
+      try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}catch(ex){}
+      updateContribSum();updatePortfolioSum();recalc();
+      const status=$('saveStatus');status.style.display='block';
+      const hasSpData=data._sp&&spBaseFields.some(f=>data._sp[f]&&data._sp[f]!=='');
+      status.textContent='Imported '+file.name+(hasSpData?'':' · no spending plan data');
+      status.style.color='var(--green)';
+      setTimeout(()=>{status.style.color='var(--gray-400)'},3000);
+    }catch(ex){const status=$('saveStatus');status.style.display='block';status.textContent='Import failed — invalid file';status.style.color='var(--red)'}
+    input.value='';
+  };
+  reader.readAsText(file);
 }
 function loadSaved(){
   try{
-    const raw=localStorage.getItem(STORAGE_KEY);
-    if(!raw)return false;
+    const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return false;
     const data=JSON.parse(raw);
-    allFields.forEach(f=>{
-      if(data[f]===undefined)return;
-      const el=$(f);if(!el)return;
-      if(el.tagName==='SELECT'){el.value=data[f]}
-      else{el.value=data[f];if(el.hasAttribute('data-money'))fmtMoney(el)}
-    });
-    if(data._contribMode){contribMode=data._contribMode;document.querySelectorAll('[data-cmode]').forEach(b=>b.classList.toggle('on',b.dataset.cmode===contribMode));$('contribSimple').style.display=contribMode==='simple'?'block':'none';$('contribDetail').style.display=contribMode==='detail'?'block':'none'}
-    if(data._portfolioMode){portfolioMode=data._portfolioMode;document.querySelectorAll('[data-pmode]').forEach(b=>b.classList.toggle('on',b.dataset.pmode===portfolioMode));$('portfolioSimple').style.display=portfolioMode==='simple'?'block':'none';$('portfolioDetail').style.display=portfolioMode==='detail'?'block':'none'}
-    if(data._savedAt){const status=$('saveStatus');status.style.display='block';status.textContent='Restored from '+new Date(data._savedAt).toLocaleDateString()+' '+new Date(data._savedAt).toLocaleTimeString()}
-    if(data._sp){const spData=data._sp;spBaseFields.forEach(f=>{if(spData[f]!==undefined){const el=$(f);if(el){el.value=spData[f];if(spData[f])fmtSpMoney(el)}};if(spData[f+'-b']!==undefined){const elb=$(f+'-b');if(elb){elb.value=spData[f+'-b'];if(spData[f+'-b'])fmtSpMoney(elb)}}});if(spData['_dualMode'])setSpDualMode(true);['fixed','invest','savings'].forEach(s=>{(spData['_custom_'+s]||[]).forEach(r=>{spAddRow(s);const n=spCustomCounts[s];const l=$('sp-custom-'+s+'-'+n+'-label'),v=$('sp-custom-'+s+'-'+n+'-val'),vb=$('sp-custom-'+s+'-'+n+'-val-b');if(l)l.value=r.label;if(v){v.value=r.val;if(r.val)fmtSpMoney(v)};if(vb&&r.valb){vb.value=r.valb;fmtSpMoney(vb)}})});syncSpendingPlan()}
+    applyData(data);
+    if(data._savedAt){const status=$('saveStatus');status.style.display='block';const hasSpData=data._sp&&spBaseFields.some(f=>data._sp[f]&&data._sp[f]!=='');status.textContent='Restored '+(hasSpData?'':'(no spending plan) · ')+'— re-import to update';status.style.color='var(--gray-400)'}
     return true;
   }catch(e){return false}
 }
