@@ -83,6 +83,7 @@ body{font-family:var(--font);background:var(--gray-100);color:var(--gray-700);li
 .card-t{font-size:1rem;font-weight:600;color:var(--gray-900);margin-bottom:.15rem}
 .card-s{font-size:.75rem;color:var(--gray-500);margin-bottom:1rem}
 canvas{width:100%!important;max-height:400px}
+#sankeyChart{max-height:none!important;height:100%!important}
 
 .miles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem;margin-bottom:1rem}
 .mile{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius);padding:1rem 1.15rem;box-shadow:var(--shadow)}
@@ -165,7 +166,10 @@ canvas{width:100%!important;max-height:400px}
 .sp-chart-panel{width:400px;min-width:400px;position:sticky;top:1.5rem;height:calc(100vh - 101px - 3rem)}
 .sp-sankey-card{background:var(--white);border:1px solid var(--gray-200);border-radius:6px;padding:1.25rem;box-shadow:var(--shadow);height:100%;display:flex;flex-direction:column;box-sizing:border-box}
 .sp-sankey-wrap{flex:1;position:relative;min-height:0}
-.sp-sankey-title{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:1rem;border-bottom:1px solid var(--gray-200);padding-bottom:.5rem}
+.sp-sankey-title{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--green);margin-bottom:1rem;border-bottom:1px solid var(--gray-200);padding-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
+.sk-detail-btn{font-size:.62rem;font-weight:500;color:var(--gray-500);background:var(--gray-100);border:1px solid var(--gray-200);border-radius:3px;padding:.15rem .45rem;cursor:pointer;font-family:var(--font);text-transform:none;letter-spacing:0;transition:all .15s}
+.sk-detail-btn.on{background:#e0f2fe;color:#0369a1;border-color:#7dd3fc}
+.sk-detail-btn:hover{border-color:var(--green);color:var(--green)}
 .sp-sankey-empty{font-size:.82rem;color:var(--gray-400);text-align:center;padding:4rem 1rem}
 .sp-section{background:var(--white);border:1px solid var(--gray-200);border-radius:6px;padding:1.25rem;margin-bottom:1.25rem;box-shadow:var(--shadow)}
 .sp-header{display:flex;justify-content:space-between;align-items:center;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--green);border-bottom:1px solid var(--gray-200);padding-bottom:.5rem;margin-bottom:.85rem}
@@ -428,7 +432,7 @@ canvas{width:100%!important;max-height:400px}
 
   <div class="sp-chart-panel">
     <div class="sp-sankey-card">
-      <div class="sp-sankey-title">Monthly Cash Flow</div>
+      <div class="sp-sankey-title">Monthly Cash Flow<button id="sankeyDetailBtn" class="sk-detail-btn" onclick="toggleSankeyDetail()">Detail</button></div>
       <div id="sankeyEmpty" class="sp-sankey-empty">Enter income and spending<br>to see your cash flow</div>
       <div id="sankeyWrap" class="sp-sankey-wrap" style="display:none">
         <canvas id="sankeyChart"></canvas>
@@ -847,6 +851,14 @@ function cOpts(){return{responsive:true,interaction:{mode:'index',intersect:fals
 // ─── SPENDING PLAN ───
 let appView='fire';
 let spCustomCounts={fixed:0,invest:0,savings:0};
+let sankeyDetailed=false;
+let sankeyLastArgs=null;
+function toggleSankeyDetail(){
+  sankeyDetailed=!sankeyDetailed;
+  const btn=$('sankeyDetailBtn');
+  if(btn)btn.classList.toggle('on',sankeyDetailed);
+  if(sankeyLastArgs)rSankey(sankeyLastArgs);
+}
 let spDualMode=false;
 
 function setSpDualMode(on){
@@ -931,22 +943,23 @@ function syncSpendingPlan(){
   if(annualContrib>0){$('contribTotal').value=Math.round(annualContrib).toLocaleString();const n=$('contribSyncNote');if(n)n.style.display='block'}
   else{const n=$('contribSyncNote');if(n)n.style.display='none'}
   const pretax=spRowVal('sp-pretax'),hsa=spRowVal('sp-hsa');
-  rSankey({gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,guiltFree});
+  const fixedItemDefs=[{label:'Rent / Mortgage',id:'sp-rent'},{label:'Utilities',id:'sp-utilities'},{label:'Insurance',id:'sp-insurance'},{label:'Car / Transportation',id:'sp-car'},{label:'Debt Payments',id:'sp-debt'},{label:'Groceries',id:'sp-groceries'},{label:'Clothes',id:'sp-clothes'},{label:'Phone',id:'sp-phone'},{label:'Subscriptions',id:'sp-subscriptions'}];
+  const fixedItems=fixedItemDefs.map(d=>({label:d.label,val:spRowVal(d.id)})).filter(d=>d.val>0);
+  document.querySelectorAll('[data-sp-custom="fixed"]').forEach(el=>{const row=el.closest('.sp-row');const lbl=row?row.querySelector('.sp-label-input'):null;const val=spRowVal(el.id);if(val>0)fixedItems.push({label:lbl&&lbl.value?lbl.value:'Custom',val})});
+  if(misc>0)fixedItems.push({label:'Miscellaneous',val:misc});
+  const postTaxItems=[];
+  const retirementVal=spRowVal('sp-retirement'),stocksVal=spRowVal('sp-stocks');
+  if(retirementVal>0)postTaxItems.push({label:'Post-Tax Retirement',val:retirementVal});
+  if(stocksVal>0)postTaxItems.push({label:'Stocks / Brokerage',val:stocksVal});
+  document.querySelectorAll('[data-sp-custom="invest"]').forEach(el=>{const row=el.closest('.sp-row');const lbl=row?row.querySelector('.sp-label-input'):null;const val=spRowVal(el.id);if(val>0)postTaxItems.push({label:lbl&&lbl.value?lbl.value:'Custom',val})});
+  rSankey({gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,guiltFree,fixedItems,postTaxItems});
   recalc();
 }
 
-function nodeColor(n){
-  if(n==='Gross Income')return'#008244';
-  if(n==='Net Income')return'#1a6daa';
-  if(n==='Taxes')return'#c4262e';
-  if(n==='Pre-Tax 401k/HSA')return'#6b4c9a';
-  if(n==='Fixed Costs')return'#c79400';
-  if(n==='Investments')return'#1a6daa';
-  if(n==='Savings Goals')return'#008244';
-  if(n==='Guilt-Free')return'#00613a';
-  return'#999';
-}
-function rSankey({gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,guiltFree}){
+const baseNodeColors={'Gross Income':'#008244','Net Income':'#1a6daa','Taxes':'#c4262e','Pre-Tax 401k/HSA':'#6b4c9a','Fixed Costs':'#c79400','Investments':'#1a6daa','Savings Goals':'#008244','Guilt-Free':'#00613a'};
+function rSankey(args){
+  const {gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,guiltFree,fixedItems=[],postTaxItems=[]}=args;
+  sankeyLastArgs=args;
   const canvas=$('sankeyChart'),empty=$('sankeyEmpty'),wrap=$('sankeyWrap');
   if(!canvas)return;
   if(!gross){
@@ -958,19 +971,50 @@ function rSankey({gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,gui
   const taxes=Math.max(0,gross-net-pretax-hsa);
   const preTaxCombined=pretax+hsa;
   const flows=[];
-  if(taxes>0)flows.push({from:'Gross Income',to:'Taxes',flow:Math.round(taxes)});
-  if(preTaxCombined>0)flows.push({from:'Gross Income',to:'Pre-Tax 401k/HSA',flow:Math.round(preTaxCombined)});
-  if(net>0)flows.push({from:'Gross Income',to:'Net Income',flow:Math.round(net)});
-  if(fixedTotal>0)flows.push({from:'Net Income',to:'Fixed Costs',flow:Math.round(fixedTotal)});
-  if(postTaxInvest>0)flows.push({from:'Net Income',to:'Investments',flow:Math.round(postTaxInvest)});
-  if(savingsTotal>0)flows.push({from:'Net Income',to:'Savings Goals',flow:Math.round(savingsTotal)});
-  if(guiltFree>0)flows.push({from:'Net Income',to:'Guilt-Free',flow:Math.round(guiltFree)});
+  const nodeColorMap={...baseNodeColors};
+  const nodeVals={};
   const m=n=>'$'+Math.round(n).toLocaleString();
-  const nodeVals={
-    'Gross Income':gross,'Net Income':net,'Taxes':taxes,
-    'Pre-Tax 401k/HSA':preTaxCombined,'Fixed Costs':fixedTotal,
-    'Investments':postTaxInvest,'Savings Goals':savingsTotal,'Guilt-Free':guiltFree
-  };
+  if(sankeyDetailed){
+    if(net>0)nodeVals['Net Income']=net;
+    if(fixedTotal>0)flows.push({from:'Net Income',to:'Fixed Costs',flow:Math.round(fixedTotal)});
+    if(postTaxInvest>0)flows.push({from:'Net Income',to:'Investments',flow:Math.round(postTaxInvest)});
+    if(savingsTotal>0)flows.push({from:'Net Income',to:'Savings Goals',flow:Math.round(savingsTotal)});
+    if(guiltFree>0)flows.push({from:'Net Income',to:'Guilt-Free',flow:Math.round(guiltFree)});
+    if(fixedTotal>0)nodeVals['Fixed Costs']=fixedTotal;
+    if(postTaxInvest>0)nodeVals['Investments']=postTaxInvest;
+    if(savingsTotal>0)nodeVals['Savings Goals']=savingsTotal;
+    if(guiltFree>0)nodeVals['Guilt-Free']=guiltFree;
+    if(fixedTotal>0&&fixedItems.length>0){
+      fixedItems.forEach(item=>{
+        flows.push({from:'Fixed Costs',to:item.label,flow:Math.round(item.val)});
+        nodeVals[item.label]=item.val;
+        nodeColorMap[item.label]='#e6a800';
+      });
+    }
+    if(postTaxInvest>0&&postTaxItems.length>0){
+      postTaxItems.forEach(item=>{
+        flows.push({from:'Investments',to:item.label,flow:Math.round(item.val)});
+        nodeVals[item.label]=item.val;
+        nodeColorMap[item.label]='#3b82f6';
+      });
+    }
+  } else {
+    if(taxes>0)flows.push({from:'Gross Income',to:'Taxes',flow:Math.round(taxes)});
+    if(preTaxCombined>0)flows.push({from:'Gross Income',to:'Pre-Tax 401k/HSA',flow:Math.round(preTaxCombined)});
+    if(net>0)flows.push({from:'Gross Income',to:'Net Income',flow:Math.round(net)});
+    if(fixedTotal>0)flows.push({from:'Net Income',to:'Fixed Costs',flow:Math.round(fixedTotal)});
+    if(postTaxInvest>0)flows.push({from:'Net Income',to:'Investments',flow:Math.round(postTaxInvest)});
+    if(savingsTotal>0)flows.push({from:'Net Income',to:'Savings Goals',flow:Math.round(savingsTotal)});
+    if(guiltFree>0)flows.push({from:'Net Income',to:'Guilt-Free',flow:Math.round(guiltFree)});
+    nodeVals['Gross Income']=gross;
+    nodeVals['Net Income']=net;
+    if(taxes>0)nodeVals['Taxes']=taxes;
+    if(preTaxCombined>0)nodeVals['Pre-Tax 401k/HSA']=preTaxCombined;
+    if(fixedTotal>0)nodeVals['Fixed Costs']=fixedTotal;
+    if(postTaxInvest>0)nodeVals['Investments']=postTaxInvest;
+    if(savingsTotal>0)nodeVals['Savings Goals']=savingsTotal;
+    if(guiltFree>0)nodeVals['Guilt-Free']=guiltFree;
+  }
   const labels={};
   Object.entries(nodeVals).forEach(([name,val])=>{if(val>0)labels[name]=name+'\n'+m(val)});
   if(charts.sk)charts.sk.destroy();
@@ -980,8 +1024,8 @@ function rSankey({gross,net,pretax,hsa,fixedTotal,postTaxInvest,savingsTotal,gui
       label:'Monthly Cash Flow',
       data:flows,
       labels,
-      colorFrom:c=>nodeColor(c.dataset.data[c.dataIndex].from),
-      colorTo:c=>nodeColor(c.dataset.data[c.dataIndex].to),
+      colorFrom:c=>nodeColorMap[c.dataset.data[c.dataIndex].from]||'#999',
+      colorTo:c=>nodeColorMap[c.dataset.data[c.dataIndex].to]||'#999',
       colorMode:'gradient',
       borderWidth:0,
       size:'max',
